@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/back"
+    android:fillViewport="true"
+    tools:context=".Fragments.CreateFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/cl_create"
+        android:background="@color/back"
+        tools:context=".Fragments.CreateFragment">
+
+        <!-- Поле для ввода названия -->
+        <EditText
+            android:id="@+id/et_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/edt_box"
+            android:hint="Название"
+            android:padding="10dp"
+            android:textColor="@color/text"
+            android:fontFamily="@font/barkentina"
+            android:textColorHint="@color/text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Поле для ввода места -->
+        <EditText
+            android:id="@+id/et_location"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/edt_box"
+            android:hint="Местоположение"
+            android:padding="10dp"
+            android:textColor="@color/text"
+            android:fontFamily="@font/barkentina"
+            android:textColorHint="@color/text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/et_title" />
+
+        <!-- Поле для ввода даты -->
+        <EditText
+            android:id="@+id/et_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/edt_box"
+            android:hint="Дата проведения"
+            android:padding="10dp"
+            android:textColor="@color/text"
+            android:fontFamily="@font/barkentina"
+            android:textColorHint="@color/text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/et_location" />
+
+        <!-- Поле для ввода текста -->
+        <EditText
+            android:id="@+id/et_create_content"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/edt_box"
+            android:gravity="start"
+            android:hint="Описание"
+            android:minHeight="150dp"
+            android:padding="10dp"
+            android:textColor="@color/text"
+            android:fontFamily="@font/barkentina"
+            android:textColorHint="@color/text"
+            android:textColorLink="#00FFFFFF"
+            android:scrollbars="vertical"
+            android:inputType="textMultiLine"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/et_date" />
+
+        <!-- Контейнер для фотографии с цветом -->
+        <ImageView
+            android:id="@+id/imv_post_image"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:scaleType="center"
+            android:background="@color/post"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/et_create_content" />
+
+        <!-- Кнопка добавления изображения (наполовину на картинке, справа снизу) -->
+        <ImageButton
+            android:id="@+id/imb_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/select_image_desc"
+            android:src="@drawable/photo"
+            app:layout_constraintBottom_toBottomOf="@id/imv_post_image"
+            app:layout_constraintEnd_toEndOf="@id/imv_post_image"
+            android:layout_marginBottom="-18dp"
+            android:layout_marginEnd="16dp" />
+
+        <!-- Кнопка удаления изображения (наискосок от кнопки добавления, слева сверху) -->
+        <ImageButton
+            android:id="@+id/imb_delete_image"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/delete_image"
+            android:src="@drawable/del_image"
+            app:layout_constraintStart_toStartOf="@id/imv_post_image"
+            app:layout_constraintTop_toTopOf="@id/imv_post_image"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="-10dp" />
+
+        <!-- Кнопка "Создать" (по центру) -->
+        <Button
+            android:id="@+id/btn_post"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="20dp"
+            android:backgroundTint="@color/button"
+            android:textColor="@color/text"
+            android:fontFamily="@font/barkentina"
+            android:text="Создать"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/imv_post_image" />
+
+        <!-- Кнопка удаления поста (на одной линии с кнопкой "Опубликовать", но чуть дальше) -->
+        <ImageButton
+            android:id="@+id/imb_delete_post"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="45dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/delete_image"
+            android:src="@drawable/delete"
+            app:layout_constraintBottom_toBottomOf="@id/btn_post"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/btn_post"
+            app:layout_constraintTop_toTopOf="@id/btn_post" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

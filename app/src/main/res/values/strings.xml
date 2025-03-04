@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">ActNow</string>
+    <string name="title_activity_authorized">AuthorizedActivity</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="delete_post_description">Удалить пост</string>
+
+    <string name="search_icon">Поиск</string>
+
+    <string name="profile_image_desc">Картинка профиля</string>
+
+    <string name="change_avatar">Изменить картинку</string>
+
+    <string name="delete_image">Изменить картинку</string>
+    <string name="select_image_desc">Изменить картинку</string>
+</resources>

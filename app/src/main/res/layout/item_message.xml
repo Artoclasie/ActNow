@@ -1,0 +1,20 @@
+<!-- res/layout/item_message.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:id="@+id/item_message"
+    android:padding="10dp">
+
+    <!-- TextView для текста сообщения -->
+    <TextView
+        android:id="@+id/tvMessageText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sample message"
+        android:maxWidth="250dp"
+        android:padding="8dp"
+        android:layout_gravity="start"
+        android:background="?android:attr/selectableItemBackground" />
+
+</LinearLayout>

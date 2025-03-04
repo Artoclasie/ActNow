@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "915837596899",
+    "firebase_url": "https://actnowforjava-default-rtdb.firebaseio.com",
+    "project_id": "actnowforjava",
+    "storage_bucket": "actnowforjava.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:915837596899:android:06fcb32d7bb36eebee81d6",
+        "android_client_info": {
+          "package_name": "com.example.actnow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXu-fVu5tLEyFcGLJhXYLmGv2lcYckvug"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

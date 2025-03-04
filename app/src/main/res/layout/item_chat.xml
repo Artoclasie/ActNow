@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="2dp"
+    app:cardCornerRadius="0dp"
+    android:id="@+id/item_chat"
+    android:backgroundTint="@color/back"
+    app:cardElevation="4dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/post"
+        android:padding="15dp"
+        >
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cv_post_uid"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="12dp"
+            app:cardCornerRadius="45dp"
+            app:cardElevation="2dp">
+
+            <ImageView
+                android:id="@+id/imv_post_uid"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                tools:ignore="ContentDescription" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- Имя пользователя -->
+        <TextView
+            android:id="@+id/tv_chat_username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/cv_post_uid"
+            android:layout_marginStart="15dp"
+            android:fontFamily="@font/barkentina"
+            android:textColorHint="@color/text"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/text"
+            tools:text="Алексей" />
+
+        <!-- Последнее сообщение -->
+        <TextView
+            android:id="@+id/tv_chat_last_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tv_chat_username"
+            android:layout_toEndOf="@+id/cv_post_uid"
+            android:layout_marginStart="12dp"
+            android:paddingBottom="16dp"
+            android:textSize="0sp"
+            android:textColor="@color/back"
+            android:fontFamily="@font/barkentina"
+            android:textColorHint="@color/back" />
+
+        <!-- Время последнего сообщения -->
+        <TextView
+            android:id="@+id/tv_chat_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:textSize="12sp"
+            android:textColor="@color/black"/>
+
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>
