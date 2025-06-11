@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">ActNow</string>
-    <string name="title_activity_authorized">AuthorizedActivity</string>
+    <string name="title_activity_authorized">ActNow</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
@@ -14,4 +14,65 @@
 
     <string name="delete_image">Изменить картинку</string>
     <string name="select_image_desc">Изменить картинку</string>
+
+    <string name="profile_avatar_desc">Изменить картинку</string>
+
+    <style name="CircleButton" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <string name="follow">Подписаться</string>
+    <string name="desc_avatar">Аватар пользователя</string>
+    <string name="desc_like">Кнопка лайка</string>
+    <string name="desc_comment">Кнопка комментария</string>
+    <string name="desc_share">Кнопка поделиться</string>
+
+    <!-- Settings -->
+    <string name="events_participated">Участие в мероприятиях: %d</string>
+    <string name="events_saved">Сохранено мероприятий: %d</string>
+    <string name="settings">Настройки</string>
+    <string name="notifications">Уведомления</string>
+    <string name="theme">Тема</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Тёмная</string>
+    <string name="theme_system">Системная</string>
+    <string name="logout">Выйти</string>
+    <string name="delete_account">Удалить аккаунт</string>
+    <string name="statistics">Статистика</string>
+
+    <string name="custom_tag">Тег для упоминаний</string>
+
+    <style name="CustomChipChoice" parent="Widget.MaterialComponents.Chip.Choice">
+        <item name="chipBackgroundColor">@color/chip_background</item>
+        <item name="android:textColor">@color/text</item>
+    </style>
+
+    <string name="create_event_title">Создайте мероприятие</string>
+    <string name="create_event_subtitle">Расскажите о вашем мероприятии: описание, участники, теги и изображения</string>
+    <string name="gallery_label">Галерея (до 10 изображений)</string>
+    <string name="start_date_hint">Дата начала</string>
+    <string name="end_date_hint">Дата окончания</string>
+    <string name="start_time_hint">Время начала</string>
+    <string name="end_time_hint">Время окончания</string>
+    <string name="event_title_hint">Название мероприятия</string>
+    <string name="event_description_hint">Описание мероприятия</string>
+    <string name="max_participants_hint">Максимальное количество участников</string>
+    <string name="address_hint">Адрес (опционально)</string>
+    <string name="min_age_hint">Минимальный возраст (опционально)</string>
+    <string name="tags_label">Выберите направления</string>
+    <string name="tag_animals">Животные</string>
+    <string name="tag_veterans">Ветераны</string>
+    <string name="tag_youth">Молодеж</string>
+    <string name="tag_ecology">Экология</string>
+    <string name="tag_education">Образование</string>
+    <string name="tag_sport">Спорт</string>
+    <string name="cancel">Отменить</string>
+    <string name="create_event">Создать</string>
+    <string name="cover_image_description">Обложка мероприятия</string>
+    <string name="add_cover_photo">Добавить обложку</string>
+    <string name="delete_cover_photo">Удалить обложку</string>
+    <string name="add_gallery_photo">Добавить фото в галерею</string>
+    <string name="tab_layout_desc">Вкладки профиля для переключения между организованными мероприятиями, постами и другими данными</string>
+
 </resources>

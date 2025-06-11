@@ -34,48 +34,66 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        compose = true // Добавлено для поддержки Compose
+    }
+    kotlinOptions {
+        jvmTarget = "11" // Добавлено для Kotlin
     }
 }
 
 dependencies {
-
+    implementation (libs.core.ktx) // или более новая версия
+    // Базовые зависимости Android
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.lifecycle.runtime.ktx)
+
+    // Compose
     implementation(libs.activity.compose)
     implementation(platform(libs.compose.bom))
     implementation(libs.ui)
     implementation(libs.ui.graphics)
     implementation(libs.ui.tooling.preview)
     implementation(libs.material3)
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.database)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.analytics)
+
+    // Библиотеки изображений
+    implementation(libs.github.glide)
+    annotationProcessor(libs.compiler)
+    implementation (libs.google.gson)
+    // Навигация
+    implementation(libs.navigation.fragment.ktx)
+    implementation(libs.navigation.ui.ktx)
+
+    // ViewPager2 и индикатор точек
+    implementation(libs.viewpager2)
+    implementation(libs.dotsindicator)
+    implementation (libs.swiperefreshlayout)
+
+    // Тестирование
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-
-    implementation(libs.firebase.auth)
-    implementation(libs.firebase.database)
-
-    implementation(libs.cloudinary.android)
-
-    implementation(libs.github.glide)
-
-    implementation(libs.constraintlayout.v220)
-
-    implementation(libs.navigation.fragment.ktx)
-
-    implementation(libs.navigation.ui.ktx)
-
-    implementation(platform(libs.firebase.bom))
-
-    implementation (libs.github.glide)
-
-    annotationProcessor (libs.compiler)
-    implementation(libs.firebase.analytics)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
+
+    // Отладка
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
+
+    implementation (libs.material.v1110)
+    // Cloudinary
+    implementation(libs.cloudinary.android)
+    implementation (libs.firebase.messaging)
+
+    //карты
+
 }

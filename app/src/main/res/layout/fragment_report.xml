@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/transparent"
+    android:padding="16dp">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        android:background="@color/back">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/transparent"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@color/back"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/back"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Заголовок по центру -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:gravity="center"
+                        android:text="Отчёт по активности"
+                        android:textColor="@color/text"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+
+                    <!-- Дата отчёта -->
+                    <TextView
+                        android:id="@+id/tv_report_date"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center"
+                        android:text="Дата: Загрузка..."
+                        android:textColor="@color/button"
+                        android:textSize="14sp" />
+
+                    <!-- Разделитель -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="@color/button" />
+
+                    <!-- Рейтинг (5 звезд) -->
+                    <LinearLayout
+                        android:id="@+id/ll_stars"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:paddingBottom="16dp">
+
+                        <ImageView
+                            android:id="@+id/star1"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_star_outline" />
+
+                        <ImageView
+                            android:id="@+id/star2"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_star_outline" />
+
+                        <ImageView
+                            android:id="@+id/star3"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_star_outline" />
+
+                        <ImageView
+                            android:id="@+id/star4"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_star_outline" />
+
+                        <ImageView
+                            android:id="@+id/star5"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_star_outline" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="@color/button" />
+
+                    <!-- Общая статистика -->
+                    <TextView
+                        android:id="@+id/tv_report_summary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:text="Общая статистика пользователя:"
+                        android:textColor="@color/text"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <!-- Тип аккаунта -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Тип аккаунта: "
+                            android:textColor="@color/text"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/tv_account_type"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="N/A"
+                            android:textColor="@color/text"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+
+                    <!-- Количество постов -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Количество постов: "
+                            android:textColor="@color/text"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/tv_posts_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="@color/text"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+
+                    <!-- Количество лайков -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Общее количество лайков: "
+                            android:textColor="@color/text"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/tv_likes_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="@color/text"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+
+                    <!-- Количество комментариев -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Количество комментариев: "
+                            android:textColor="@color/text"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/tv_comments_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="@color/text"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+
+                    <!-- URL аватара -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="URL аватара: "
+                            android:textColor="@color/text"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/tv_avatar_url"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="null"
+                            android:textColor="@color/text"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+
+                    <!-- Разделитель -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="@color/button" />
+
+                    <!-- Детали активности -->
+                    <TextView
+                        android:id="@+id/tv_activity_details"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:text="Детали активности:\n- Зарегистрирован: -\n- Последний пост: -"
+                        android:textColor="@color/text"
+                        android:textSize="16sp" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</LinearLayout>

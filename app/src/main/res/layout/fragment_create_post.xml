@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/scroll_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/back"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/back"
+        android:padding="16dp">
+
+        <!-- Заголовок -->
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Какое доброе дело вы сделали?"
+            android:textColor="@color/text"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/barkentina"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <!-- Подзаголовок -->
+        <TextView
+            android:id="@+id/subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Поделитесь, как вы сдали в переработку бумагу или крышечки, помогли животным или людям"
+            android:textColor="@color/text"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/barkentina"
+            app:layout_constraintTop_toBottomOf="@id/title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <!-- Вопрос "Чем вы помогли?" -->
+        <TextView
+            android:id="@+id/help_question"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Чем вы помогли?"
+            android:textColor="@color/text"
+            android:textSize="16sp"
+            android:layout_marginTop="24dp"
+            android:fontFamily="@font/barkentina"
+            app:layout_constraintTop_toBottomOf="@id/subtitle"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <!-- Поле для описания -->
+        <EditText
+            android:id="@+id/et_create_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/edt_box"
+            android:hint="Расскажите, что вы сделали..."
+            android:inputType="textMultiLine"
+            android:padding="16dp"
+            android:maxLength="250"
+            android:textColor="@color/text"
+            android:textColorHint="@color/text"
+            android:fontFamily="@font/barkentina"
+            android:gravity="top|start"
+            android:minHeight="150dp"
+            app:layout_constraintTop_toBottomOf="@id/help_question"/>
+
+        <!-- Счетчик символов -->
+        <TextView
+            android:id="@+id/tv_char_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0/250"
+            android:textColor="@color/text"
+            android:layout_marginTop="4dp"
+            android:fontFamily="@font/barkentina"
+            app:layout_constraintTop_toBottomOf="@id/et_create_content"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <FrameLayout
+            android:id="@+id/fl_image_container"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginTop="24dp"
+            android:background="@color/post"
+            app:layout_constraintTop_toBottomOf="@id/tv_char_count">
+
+            <ImageView
+                android:id="@+id/imv_post_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:visibility="gone"/>
+
+            <!-- Кнопка добавления фотографии -->
+            <ImageButton
+                android:id="@+id/btn_add_photo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_camera"
+                android:background="?attr/selectableItemBackgroundBorderless"/>
+
+            <!-- Кнопка удаления фотографии -->
+            <ImageButton
+                android:id="@+id/btn_delete_photo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="8dp"
+                android:src="@drawable/delete"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:visibility="gone"/>
+        </FrameLayout>
+
+        <!-- Кнопки действий -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            app:layout_constraintTop_toBottomOf="@id/fl_image_container">
+
+            <Button
+                android:id="@+id/btn_cancel"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Отменить"
+                android:textColor="@color/text"
+                android:backgroundTint="@color/button"
+                android:fontFamily="@font/barkentina"/>
+
+            <Button
+                android:id="@+id/btn_post"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Опубликовать"
+                android:textColor="@color/text"
+                android:backgroundTint="@color/button"
+                android:fontFamily="@font/barkentina"
+                android:enabled="false" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

@@ -1,46 +1,45 @@
 package com.example.actnow.Fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.bumptech.glide.Glide;
-import com.example.actnow.AnotherProfileActivity;
-import com.example.actnow.Models.MessageModel;
-import com.example.actnow.Models.ProfileModel;
+import com.example.actnow.Adapters.ChatAdapter;
+import com.example.actnow.Models.ChatModel;
 import com.example.actnow.R;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 public class ChatsFragment extends Fragment {
+    private static final String TAG = "ChatsFragment";
     private RecyclerView rvChats;
+    private TextView tvEmptyChats;
+    private SwipeRefreshLayout swipeRefreshLayout;
     private ChatAdapter chatAdapter;
-    private List<ProfileModel> chatUsers = new ArrayList<>();
+    private List<ChatModel> chats;
     private FirebaseFirestore db;
     private String currentUserId;
     private ListenerRegistration chatListener;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public ChatsFragment() {}
 
@@ -48,20 +47,37 @@ public class ChatsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chats, container, false);
         rvChats = view.findViewById(R.id.recyclerViewChats);
+        tvEmptyChats = view.findViewById(R.id.tvEmptyChats);
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         rvChats.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        Log.d("ChatsFragment", "Current user ID: " + currentUserId);
-        db = FirebaseFirestore.getInstance();
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            Log.e(TAG, "User not authenticated");
+            Toast.makeText(getContext(), "Ошибка: Пользователь не авторизован", Toast.LENGTH_SHORT).show();
+            if (getActivity() != null) {
+                getActivity().onBackPressed();
+            }
+            return view;
+        }
+        currentUserId = currentUser.getUid();
+        Log.d(TAG, "Current user ID: " + currentUserId);
 
-        // Инициализация адаптера
-        chatAdapter = new ChatAdapter(chatUsers);
+        db = FirebaseFirestore.getInstance();
+        chats = new ArrayList<>();
+
+        chatAdapter = new ChatAdapter(getContext(), currentUserId, chat -> openChatFragment(chat));
         rvChats.setAdapter(chatAdapter);
 
-        // Создание документа, если он отсутствует
-        createChatDocumentIfNotExists();
+        // Set up SwipeRefreshLayout
+        swipeRefreshLayout.setOnRefreshListener(this::refreshChats);
+        swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light,
+                android.R.color.holo_red_light);
 
-        loadChatUsers();
+        setupChatListener();
         return view;
     }
 
@@ -69,238 +85,99 @@ public class ChatsFragment extends Fragment {
     public void onStop() {
         super.onStop();
         if (chatListener != null) {
-            chatListener.remove(); // Удаляем Listener
+            chatListener.remove();
         }
     }
 
-    private void createChatDocumentIfNotExists() {
-        db.collection("Chats")
-                .document(currentUserId)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
-                        if (!document.exists()) {
-                            // Создаем новый документ, если он отсутствует
-                            Map<String, Object> chatData = new HashMap<>();
-                            chatData.put("participants", new ArrayList<String>()); // Пустой список участников
-                            db.collection("Chats")
-                                    .document(currentUserId)
-                                    .set(chatData)
-                                    .addOnSuccessListener(aVoid -> {
-                                        Log.d("ChatsFragment", "Chat document created for user: " + currentUserId);
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Log.e("ChatsFragment", "Error creating chat document: ", e);
-                                    });
-                        }
-                    } else {
-                        Log.e("ChatsFragment", "Error checking chat document: ", task.getException());
-                    }
-                });
-    }
-
-    private void loadChatUsers() {
+    private void setupChatListener() {
         chatListener = db.collection("Chats")
-                .document(currentUserId)
-                .addSnapshotListener((documentSnapshot, error) -> {
+                .whereArrayContains("participants", currentUserId)
+                .orderBy("lastMessageTime", Query.Direction.DESCENDING)
+                .addSnapshotListener((queryDocumentSnapshots, error) -> {
                     if (error != null) {
-                        Log.e("ChatsFragment", "Error listening to chat document: ", error);
+                        Log.e(TAG, "Error listening to chats: " + error.getMessage());
+                        mainHandler.post(() -> {
+                            Toast.makeText(getContext(), "Ошибка загрузки чатов: " + error.getMessage(), Toast.LENGTH_LONG).show();
+                            swipeRefreshLayout.setRefreshing(false);
+                        });
                         return;
                     }
 
-                    if (documentSnapshot != null && documentSnapshot.exists()) {
-                        List<String> participants = (List<String>) documentSnapshot.get("participants");
-                        if (participants != null && !participants.isEmpty()) {
-                            Log.d("ChatsFragment", "Total chat participants: " + participants.size());
-
-                            // Очищаем текущий список пользователей
-                            chatUsers.clear();
-
-                            for (String userId : participants) {
-                                if (!userId.equals(currentUserId)) { // Исключаем текущего пользователя
-                                    Log.d("ChatsFragment", "Chat participant: " + userId);
-                                    loadUserProfile(userId); // Загружаем профиль участника
-                                    loadLastMessage(userId); // Загружаем последнее сообщение
+                    List<ChatModel> tempChats = new ArrayList<>();
+                    if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
+                        for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                            ChatModel chat = document.toObject(ChatModel.class);
+                            if (chat != null) {
+                                chat.setChatId(document.getId());
+                                if (chat.getLastMessageTime() == null) {
+                                    chat.setLastMessageTime(chat.getUpdatedAt() != null ? chat.getUpdatedAt() : chat.getCreatedAt());
                                 }
+                                tempChats.add(chat);
+                                Log.d(TAG, "Added chat with ID: " + chat.getChatId() + ", participants: " + chat.getParticipants() + ", lastMessage: " + chat.getLastMessage());
                             }
-                        } else {
-                            Log.e("ChatsFragment", "No chat participants found");
                         }
+                        Log.d(TAG, "Loaded " + tempChats.size() + " chats for user: " + currentUserId);
                     } else {
-                        Log.e("ChatsFragment", "Chat document does not exist");
+                        Log.w(TAG, "No chats found for user: " + currentUserId);
                     }
+
+                    // Update UI on the main thread
+                    mainHandler.post(() -> {
+                        if (getActivity() == null) return; // Проверяем, что фрагмент всё ещё привязан
+                        chats.clear();
+                        chats.addAll(new ArrayList<>(tempChats));
+                        Log.d(TAG, "Updated chats list with " + chats.size() + " items before adapter update");
+                        chatAdapter.updateChats(new ArrayList<>(chats));
+                        updateEmptyState();
+                        Log.d(TAG, "Updated chats list with " + chats.size() + " items after adapter update");
+                        swipeRefreshLayout.setRefreshing(false);
+                    });
                 });
     }
 
-    private void loadLastMessage(String userId) {
-        String chatId = currentUserId + "_" + userId; // Формируем chatId
-        Log.d("ChatsFragment", "Loading last message for chatId: " + chatId);
-
-        // Создаем ссылку на подколлекцию Messages для этого чата
-        CollectionReference messagesRef = db
-                .collection("Chats")
-                .document(chatId)
-                .collection("Messages");
-
-        // Загружаем последнее сообщение
-        messagesRef.orderBy("timestamp", Query.Direction.DESCENDING)
-                .limit(1)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (!queryDocumentSnapshots.isEmpty()) {
-                        DocumentSnapshot document = queryDocumentSnapshots.getDocuments().get(0);
-                        MessageModel lastMessage = document.toObject(MessageModel.class);
-                        if (lastMessage != null) {
-                            Log.d("ChatsFragment", "Last message: " + lastMessage.getContent());
-                            Log.d("ChatsFragment", "Last message timestamp: " + lastMessage.getTimestamp());
-
-                            // Обновляем данные в списке пользователей
-                            for (ProfileModel user : chatUsers) {
-                                if (user.getUid().equals(userId)) {
-                                    user.setLastMessage(lastMessage.getContent());
-                                    user.setLastMessageTimestamp(lastMessage.getTimestamp());
-                                    chatAdapter.notifyDataSetChanged();
-                                    Log.d("ChatsFragment", "Last message and timestamp updated for user: " + userId);
-                                    break;
-                                }
-                            }
-                        } else {
-                            Log.e("ChatsFragment", "Last message is null for chatId: " + chatId);
-                        }
-                    } else {
-                        Log.d("ChatsFragment", "No messages found for chatId: " + chatId);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("ChatsFragment", "Error loading last message: ", e);
-                });
+    private void refreshChats() {
+        if (chatListener != null) {
+            chatListener.remove();
+        }
+        setupChatListener();
     }
 
-    private void loadUserProfile(String userId) {
-        db.collection("Profiles")
-                .document(userId)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
-                        if (document.exists()) {
-                            ProfileModel user = document.toObject(ProfileModel.class);
-                            if (user != null) {
-                                Log.d("ChatsFragment", "User loaded: " + user.getUsername() + ", Avatar URL: " + user.getProfileImageUrl());
-                                chatUsers.add(user);
-                                if (chatAdapter != null) {
-                                    chatAdapter.notifyDataSetChanged(); // Обновляем адаптер
-                                }
-                            } else {
-                                Log.e("ChatsFragment", "User data is null for userId: " + userId);
-                            }
-                        } else {
-                            Log.e("ChatsFragment", "No such profile with userId: " + userId);
-                        }
-                    } else {
-                        Log.e("ChatsFragment", "Error getting profile: ", task.getException());
-                    }
-                });
-    }
-
-    private class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder> {
-        private List<ProfileModel> users;
-
-        public ChatAdapter(List<ProfileModel> users) {
-            this.users = users;
-        }
-
-        @NonNull
-        @Override
-        public ChatViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat, parent, false);
-            return new ChatViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull ChatViewHolder holder, int position) {
-            ProfileModel user = users.get(position);
-            if (user == null) {
-                Log.e("ChatAdapter", "User is null at position: " + position);
-                return;
-            }
-
-            // Отображаем имя пользователя и аватар
-            holder.tvUserName.setText(user.getUsername());
-            Glide.with(holder.itemView.getContext())
-                    .load(user.getProfileImageUrl())
-                    .placeholder(R.drawable.default_profile_picture)
-                    .into(holder.ivUserAvatar);
-
-            // Отображаем последнее сообщение и время
-            if (user.getLastMessage() != null) {
-                holder.tvLastMessage.setText(user.getLastMessage());
-                holder.tvLastMessageTime.setText(formatTimestamp(user.getLastMessageTimestamp()));
-            } else {
-                holder.tvLastMessage.setText("No messages yet");
-                holder.tvLastMessageTime.setText("");
-            }
-
-            // Обработка клика по элементу списка
-            holder.itemView.setOnClickListener(v -> openChatFragment(user));
-        }
-
-        @Override
-        public int getItemCount() {
-            return users.size();
-        }
-
-        // Метод для форматирования времени
-        private String formatTimestamp(long timestamp) {
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
-            return sdf.format(new Date(timestamp));
-        }
-
-        class ChatViewHolder extends RecyclerView.ViewHolder {
-            TextView tvUserName;
-            ImageView ivUserAvatar;
-            TextView tvLastMessage; // Для последнего сообщения
-            TextView tvLastMessageTime; // Для времени отправки
-
-            public ChatViewHolder(@NonNull View itemView) {
-                super(itemView);
-                tvUserName = itemView.findViewById(R.id.tv_chat_username);
-                ivUserAvatar = itemView.findViewById(R.id.imv_post_uid);
-                tvLastMessage = itemView.findViewById(R.id.tv_chat_last_message); // ID для последнего сообщения
-                tvLastMessageTime = itemView.findViewById(R.id.tv_chat_time); // ID для времени
-            }
+    private void updateEmptyState() {
+        Log.d(TAG, "updateEmptyState: chats size = " + (chats != null ? chats.size() : "null"));
+        if (chats == null || chats.isEmpty()) {
+            rvChats.setVisibility(View.GONE);
+            tvEmptyChats.setVisibility(View.VISIBLE);
+            Log.d(TAG, "Showing empty state: chats list is empty");
+        } else {
+            rvChats.setVisibility(View.VISIBLE);
+            tvEmptyChats.setVisibility(View.GONE);
+            Log.d(TAG, "Showing RecyclerView: " + chats.size() + " chats loaded");
         }
     }
 
-    private static final int REQUEST_CODE_CHAT = 1001;
-
-    private void openChatFragment(ProfileModel user) {
-        if (user == null) {
-            Log.e("ChatsFragment", "User is null");
-            return;
+    private void openChatFragment(ChatModel chat) {
+        String otherUserId = getOtherUserId(chat);
+        if (otherUserId != null && !otherUserId.equals(currentUserId)) {
+            ChatFragment chatFragment = ChatFragment.newInstance(otherUserId);
+            if (getActivity() != null) {
+                getActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, chatFragment)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        } else {
+            Toast.makeText(getContext(), "Ошибка: Невозможно начать чат с самим собой", Toast.LENGTH_SHORT).show();
+            Log.w(TAG, "Attempted to start self-chat with userId: " + otherUserId);
         }
-
-        String userId = user.getUid();
-        if (userId == null || userId.isEmpty()) {
-            Log.e("ChatsFragment", "User ID is null or empty");
-            return;
-        }
-
-        Intent intent = new Intent(getContext(), AnotherProfileActivity.class);
-        intent.putExtra("uid", userId); // Передаем userId
-        intent.putExtra("fromChatsFragment", true); // Флаг, указывающий, что переход из ChatsFragment
-        startActivityForResult(intent, REQUEST_CODE_CHAT); // Используем startActivityForResult
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_CHAT) {
-            // Возвращаемся в ChatsFragment
-            if (getParentFragmentManager() != null) {
-                getParentFragmentManager().popBackStack(); // Закрываем ChatFragment
+    private String getOtherUserId(ChatModel chat) {
+        for (String participant : chat.getParticipants()) {
+            if (!participant.equals(currentUserId)) {
+                return participant;
             }
         }
+        return null;
     }
 }

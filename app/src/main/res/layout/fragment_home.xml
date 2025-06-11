@@ -1,40 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:name="com.google.android.gms.version"
-    android:value="@integer/google_play_services_version"
-    tools:context=".Fragments.HomeFragment">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tl_home"
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_margin="0dp"
-        android:layout_marginTop="20dp"
-        android:background="@color/back"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tabIndicatorColor="@color/text"
-        app:tabSelectedTextColor="@color/text"
-        android:fontFamily="@font/barkentina"
-        app:tabTextAppearance="@style/TextAppearance.AppCompat.Body1">
+        android:layout_height="wrap_content">
 
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/button"
+            app:title="Мероприятия"
+            app:titleTextColor="@color/text"
+            app:layout_scrollFlags="scroll|enterAlways">
+
+            <ImageView
+                android:id="@+id/ivSearch"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="end"
+                android:layout_marginEnd="16dp"
+                android:src="@drawable/ic_search"
+                android:contentDescription="Поиск"/>
+
+        </androidx.appcompat.widget.Toolbar>
+
+        <!-- Search Layout -->
+        <LinearLayout
+            android:id="@+id/searchLayout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Новости" />
-    </com.google.android.material.tabs.TabLayout>
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:background="@color/back"
+            android:padding="8dp">
 
-    <!-- RecyclerView для постов -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_news"
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Поиск"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:maxLines="1"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Filter Chips -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:scrollbars="none">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/filterChipGroup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:singleSelection="false">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipOnline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:titleTextColor="@color/text"
+                        android:text="Животные"
+                        style="@style/Widget.MaterialComponents.Chip.Filter"/>
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipOffline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:titleTextColor="@color/text"
+                        android:text="Люди"
+                        style="@style/Widget.MaterialComponents.Chip.Filter"/>
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipHybrid"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:titleTextColor="@color/text"
+                        android:text="Природа"
+                        style="@style/Widget.MaterialComponents.Chip.Filter"/>
+
+                </com.google.android.material.chip.ChipGroup>
+
+            </HorizontalScrollView>
+
+        </LinearLayout>
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/back"
+            app:tabIndicatorColor="@color/back"
+            app:tabMode="fixed"
+            app:tabSelectedTextColor="@color/text"
+            app:tabTextColor="@color/text" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/tl_home"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_margin="10dp"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

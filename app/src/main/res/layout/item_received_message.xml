@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="horizontal"
     android:padding="10dp"
     android:id="@+id/item_received_message"
@@ -13,32 +13,44 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:cardCornerRadius="12dp"
-    app:cardBackgroundColor="@color/button"
-    app:cardElevation="2dp">
+        app:cardBackgroundColor="@color/button"
+        app:cardElevation="2dp">
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="8dp">
-
-        <TextView
-            android:id="@+id/tv_message_text"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Received message text"
-            android:textColor="@color/text"
-            android:maxWidth="200dp"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:orientation="vertical"
+            android:padding="8dp">
 
-        <TextView
-            android:id="@+id/tv_message_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="12:45"
-            android:textColor="@color/black"
-            android:textSize="12sp"
-            android:layout_marginTop="2dp" />
-    </LinearLayout>
-</androidx.cardview.widget.CardView>
-    </LinearLayout>
+            <!-- Для текстовых сообщений -->
+            <TextView
+                android:id="@+id/tv_message_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Received message text"
+                android:textColor="@color/text"
+                android:maxWidth="200dp"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:visibility="gone" />
+
+            <!-- Для изображений -->
+            <ImageView
+                android:id="@+id/iv_image_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:maxWidth="300dp"
+                android:maxHeight="400dp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tv_message_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="12:45"
+                android:textColor="@color/black"
+                android:textSize="12sp"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</LinearLayout>

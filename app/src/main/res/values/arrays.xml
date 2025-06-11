@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="event_statuses">
+        <item>Все</item>
+        <item>Предстоящие</item>
+        <item>Завершённые</item>
+        <item>Набравшие участников</item>
+    </string-array>
+</resources>

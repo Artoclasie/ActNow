@@ -1,342 +1,293 @@
 package com.example.actnow.Adapters;
 
 import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.example.actnow.AnotherProfileActivity;
 import com.example.actnow.Fragments.AnotherProfileFragment;
-import com.example.actnow.Fragments.HomeFragment;
-import com.example.actnow.Fragments.PostDetailFragment;
 import com.example.actnow.Fragments.ProfileFragment;
 import com.example.actnow.Models.PostReferenceModel;
-import com.example.actnow.PostDetailActivity;
 import com.example.actnow.R;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.database.FirebaseDatabase;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class PostContentAdapter extends RecyclerView.Adapter<PostContentAdapter.ViewHolder> {
+public class PostContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private ArrayList<PostReferenceModel> postList;
+    private static final int TYPE_POST = 0;
+    private static final int TYPE_LOADING = 1;
+
+    private List<PostReferenceModel> postList;
     private final FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final Context context;
-    private ProfileFragment profileFragment; // Ссылка на фрагмент (может быть null)
+    private boolean showLoading = false;
 
-    // Конструктор с двумя параметрами
-    public PostContentAdapter(ArrayList<PostReferenceModel> postReferenceModels, Context context) {
+    public PostContentAdapter(List<PostReferenceModel> postReferenceModels, Context context) {
+        this.postList = new ArrayList<>();
         if (postReferenceModels != null) {
-            Collections.reverse(postReferenceModels);
+            this.postList.addAll(postReferenceModels);
         }
-        this.postList = postReferenceModels != null ? postReferenceModels : new ArrayList<>();
         this.context = context;
-        this.profileFragment = null; // Без связи с ProfileFragment
+        Log.d("PostAdapter", "Adapter created with " + postList.size() + " posts");
+        for (PostReferenceModel post : postList) {
+            Log.d("PostAdapter", "Post in adapter - ID: " + post.getId() +
+                    ", AuthorId: " + post.getAuthorId() + ", Content: " + post.getContent() +
+                    ", Username: " + post.getUsername() + ", LikesCount: " + post.getLikesCount());
+        }
     }
 
-    // Конструктор с тремя параметрами
-    public PostContentAdapter(ArrayList<PostReferenceModel> postReferenceModels, Context context, ProfileFragment profileFragment) {
-        if (postReferenceModels != null) {
-            Collections.reverse(postReferenceModels);
+    public void showLoading(boolean show) {
+        if (showLoading != show) {
+            showLoading = show;
+            notifyDataSetChanged();
         }
-        this.postList = postReferenceModels != null ? postReferenceModels : new ArrayList<>();
-        this.context = context;
-        this.profileFragment = profileFragment; // Ссылка на ProfileFragment
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return (position == postList.size() && showLoading) ? TYPE_LOADING : TYPE_POST;
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View item = LayoutInflater.from(parent.getContext()).inflate(R.layout.postcontent, parent, false);
-        return new ViewHolder(item);
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (viewType == TYPE_LOADING) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_loading, parent, false);
+            return new LoadingViewHolder(view);
+        } else {
+            View item = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.postcontent, parent, false);
+            return new PostViewHolder(item);
+        }
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        if (postList == null || postList.size() <= position) {
-            Log.e("PostContentAdapter", "Invalid position: " + position + ", postList size: " + (postList != null ? postList.size() : 0));
-            return;
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof PostViewHolder) {
+            PostReferenceModel post = postList.get(position);
+            PostViewHolder postHolder = (PostViewHolder) holder;
+            bindPostView(postHolder, post);
+        } else if (holder instanceof LoadingViewHolder) {
+            LoadingViewHolder loadingHolder = (LoadingViewHolder) holder;
+            loadingHolder.progressBar.setIndeterminate(true);
         }
+    }
 
-        PostReferenceModel post = postList.get(position);
+    public void updatePosts(List<PostReferenceModel> newPosts) {
+        this.postList.clear();
+        if (newPosts != null) {
+            this.postList.addAll(newPosts);
+        }
+        notifyDataSetChanged();
+        Log.d("PostAdapter", "Updated with " + postList.size() + " posts");
+        for (PostReferenceModel post : postList) {
+            Log.d("PostAdapter", "Post in list: " + post.getContent() + ", AuthorId: " + post.getAuthorId() +
+                    ", Username: " + post.getUsername() + ", LikesCount: " + post.getLikesCount());
+        }
+    }
 
-        if (post.getUid().equals(mAuth.getCurrentUser().getUid())) {
-            holder.imb_post_delete.setVisibility(View.VISIBLE);
-            holder.imb_post_delete.setOnClickListener(v -> deletePost(post));
+    private void bindPostView(PostViewHolder holder, PostReferenceModel post) {
+        Log.d("PostAdapter", "Binding post: " + post.getId() + ", content: " + post.getContent() +
+                ", authorId: " + post.getAuthorId() + ", username: " + post.getUsername() +
+                ", likesCount: " + post.getLikesCount());
+
+        String currentUserId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+
+        // Убираем кнопку "Отписаться/Подписаться" в этом контексте
+        holder.tv_follow.setVisibility(View.GONE);
+
+        // Устанавливаем данные
+        holder.tv_post_uname.setText(post.getUsername() != null ? post.getUsername() : "Неизвестный пользователь");
+        holder.tv_post_city.setText(post.getCity() != null ? post.getCity() : "");
+        holder.tv_post_location.setText(post.getContent() != null ? post.getContent() : "");
+        holder.tv_post_date.setText(post.getDate() != null ? post.getDate() : "");
+        holder.tv_post_likes.setText(String.valueOf(post.getLikesCount() > 0 ? post.getLikesCount() : 0));
+
+        // Загружаем иконку автора
+        if (post.getProfileImageUrl() != null && !post.getProfileImageUrl().isEmpty()) {
+            Glide.with(context)
+                    .load(post.getProfileImageUrl())
+                    .circleCrop()
+                    .placeholder(R.drawable.ic_person)
+                    .into(holder.imv_post_uid);
         } else {
-            holder.imb_post_delete.setVisibility(View.GONE);
+            holder.imv_post_uid.setImageResource(R.drawable.ic_person);
         }
 
-        // Отладочные логи
-        Log.d("PostContentAdapter", "Position: " + position + ", Post: " + post.getTitle());
-        if (holder.tv_post_uname == null) Log.e("PostContentAdapter", "tv_post_uname is null");
-        if (holder.tv_post_city == null) Log.e("PostContentAdapter", "tv_post_city is null");
-        if (holder.tv_post_title == null) Log.e("PostContentAdapter", "tv_post_title is null");
-        if (holder.tv_post_location == null) Log.e("PostContentAdapter", "tv_post_location is null");
-        if (holder.tv_date == null) Log.e("PostContentAdapter", "tv_date is null");
-        if (holder.tv_post_date == null) Log.e("PostContentAdapter", "tv_post_date is null");
-        if (holder.tv_post_likes == null) Log.e("PostContentAdapter", "tv_post_likes is null");
-
-        holder.tv_post_uname.setText(post.getUsername());
-        holder.tv_post_city.setText(post.getCity());
-        holder.tv_post_title.setText(post.getTitle());
-        holder.tv_post_location.setText(post.getLocation());
-        holder.tv_post_likes.setText(String.valueOf(post.getLikesCount()));
-        holder.tv_date.setText(post.getDate());
-
-        String timestampStr = post.getTimestamp();
-        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        SimpleDateFormat outputFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm");
-        try {
-            Date date = inputFormat.parse(timestampStr);
-            String formattedDate = outputFormat.format(date);
-            holder.tv_post_date.setText(formattedDate);
-        } catch (ParseException e) {
-            holder.tv_post_date.setText(timestampStr);
-            Log.e("PostContentAdapter", "ParseException for timestamp: " + timestampStr, e);
-        }
-
-        // Загрузка изображений
-        if (post.getProfileImageUrl() != null) {
-            Glide.with(context).load(post.getProfileImageUrl()).into(holder.imv_post_uid);
-        }
-        if (post.getImageUrl() != null) {
-            Glide.with(context).load(post.getImageUrl()).into(holder.imv_post_content);
-        }
-
-        String currentUserId = mAuth.getCurrentUser().getUid();
-        ArrayList<String> likes = post.getLikes() != null ? post.getLikes() : new ArrayList<>();
-
-        if (likes.contains(currentUserId)) {
-            holder.imb_post_likes.setImageResource(R.drawable.like_filled);
+        // Обработка изображения поста
+        if (post.getImageUrl() != null && !post.getImageUrl().isEmpty()) {
+            holder.imv_post_content.setVisibility(View.VISIBLE);
+            Glide.with(context)
+                    .load(post.getImageUrl())
+                    .into(holder.imv_post_content);
         } else {
-            holder.imb_post_likes.setImageResource(R.drawable.like);
+            holder.imv_post_content.setVisibility(View.GONE);
         }
+
+        // Обработка лайков
+        boolean isLiked = post.getLikes() != null && post.getLikes().contains(currentUserId);
+        holder.imb_post_likes.setImageResource(isLiked ? R.drawable.ic_like : R.drawable.ic_dislike);
 
         holder.imb_post_likes.setOnClickListener(v -> {
+            if (currentUserId == null) return;
+
+            List<String> likes = post.getLikes() != null ? new ArrayList<>(post.getLikes()) : new ArrayList<>();
+            int newLikesCount = post.getLikesCount();
+
+            boolean newLikeState;
             if (likes.contains(currentUserId)) {
                 likes.remove(currentUserId);
-                holder.imb_post_likes.setImageResource(R.drawable.like);
+                newLikesCount--;
+                newLikeState = false;
             } else {
                 likes.add(currentUserId);
-                holder.imb_post_likes.setImageResource(R.drawable.like_filled);
+                newLikesCount++;
+                newLikeState = true;
             }
 
-            FirebaseFirestore.getInstance().collection("Posts")
-                    .document(post.getId())
-                    .update("likes", likes, "likesCount", likes.size())
+            final int finalLikesCount = Math.max(0, newLikesCount);
+
+            holder.imb_post_likes.setImageResource(newLikeState ? R.drawable.ic_like : R.drawable.ic_dislike);
+            holder.tv_post_likes.setText(String.valueOf(finalLikesCount));
+
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("likes", likes);
+            updates.put("likesCount", finalLikesCount);
+
+            db.collection("Posts").document(post.getId())
+                    .update(updates)
                     .addOnSuccessListener(aVoid -> {
                         post.setLikes(likes);
-                        post.setLikesCount(likes.size());
-                        holder.tv_post_likes.setText(String.valueOf(likes.size()));
+                        post.setLikesCount(finalLikesCount);
                     })
-                    .addOnFailureListener(e -> Log.e("PostAdapter", "Error updating likes", e));
+                    .addOnFailureListener(e -> {
+                        holder.imb_post_likes.setImageResource(isLiked ? R.drawable.ic_like : R.drawable.ic_dislike);
+                        holder.tv_post_likes.setText(String.valueOf(post.getLikesCount()));
+                        Toast.makeText(context, "Ошибка обновления лайков", Toast.LENGTH_SHORT).show();
+                    });
         });
 
-        holder.imb_read.setOnClickListener(v -> {
-            Intent intent = new Intent(context, PostDetailActivity.class);
-            intent.putExtra("postId", post.getId());
-            intent.putExtra("title", post.getTitle());
-            intent.putExtra("location", post.getLocation());
-            intent.putExtra("date", post.getDate());
-            intent.putExtra("content", post.getContent());
-            intent.putExtra("imageUrl", post.getImageUrl());
-            intent.putExtra("profileImageUrl", post.getProfileImageUrl());
-            intent.putExtra("username", post.getUsername());
-            intent.putExtra("uid", post.getUid());
-            intent.putExtra("city", post.getCity());
-            context.startActivity(intent);
-        });
+        View.OnClickListener profileClickListener = v -> {
+            Log.d("PostAdapter", "Profile click listener triggered for post: " + post.getId());
+            if (post.getAuthorId() == null) {
+                Log.e("PostAdapter", "AuthorId is null for post: " + post.getId());
+                Toast.makeText(context, "Ошибка: не удалось загрузить профиль", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-        holder.imv_post_uid.setOnClickListener(v -> {
-            openAnotherProfile(post.getUid());
-        });
+            if (currentUserId != null && currentUserId.equals(post.getAuthorId())) {
+                Log.d("PostAdapter", "Navigating to own profile (ProfileFragment)");
+                if (context instanceof FragmentActivity) {
+                    FragmentActivity activity = (FragmentActivity) context;
+                    ProfileFragment profileFragment = new ProfileFragment();
+                    activity.getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.fragment_container, profileFragment)
+                            .addToBackStack(null)
+                            .commit();
+                }
+            } else {
+                Log.d("PostAdapter", "Navigating to another profile (AnotherProfileFragment)");
+                if (context instanceof FragmentActivity) {
+                    FragmentActivity activity = (FragmentActivity) context;
+                    if (activity.isFinishing() || activity.isDestroyed()) return;
+                    FragmentManager fragmentManager = activity.getSupportFragmentManager();
+                    AnotherProfileFragment anotherProfileFragment = AnotherProfileFragment.newInstance(post.getAuthorId());
+                    fragmentManager.beginTransaction()
+                            .replace(R.id.fragment_container, anotherProfileFragment, "AnotherProfileFragment")
+                            .addToBackStack(null)
+                            .commit();
+                }
+            }
+        };
+
+        holder.imv_post_uid.setOnClickListener(profileClickListener);
+        holder.tv_post_uname.setOnClickListener(profileClickListener);
     }
 
     @Override
     public int getItemCount() {
-        return postList != null ? postList.size() : 0;
+        return postList.size() + (showLoading ? 1 : 0);
     }
 
-    private void deletePost(PostReferenceModel post) {
-        if (postList == null || postList.isEmpty()) {
-            Log.e("PostContentAdapter", "Post list is null or empty");
-            return;
-        }
-
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String currentUserId = mAuth.getCurrentUser().getUid();
-        String postId = post.getId();
-
-        // Проверяем, что пост принадлежит текущему пользователю
-        if (!post.getUid().equals(currentUserId)) {
-            Log.w("PostContentAdapter", "Cannot delete post: Post does not belong to the current user");
-            return;
-        }
-
-        db.collection("Posts")
-                .document(postId)
-                .delete()
-                .addOnSuccessListener(aVoid -> {
-                    Log.d("PostContentAdapter", "Post deleted from Firestore: " + postId);
-
-                    // Находим индекс поста в списке по postId
-                    int index = -1;
-                    for (int i = 0; i < postList.size(); i++) {
-                        if (postList.get(i).getId().equals(postId)) {
-                            index = i;
-                            break;
-                        }
-                    }
-
-                    // Если пост найден, удаляем его
-                    if (index != -1) {
-                        postList.remove(index);
-                        notifyItemRemoved(index);
-                        notifyItemRangeChanged(index, postList.size());
-                    } else {
-                        Log.w("PostContentAdapter", "Post not found in list: " + postId);
-                    }
-
-                    // Удаление из Realtime Database
-                    FirebaseDatabase.getInstance().getReference("Posts")
-                            .child(postId)
-                            .removeValue()
-                            .addOnSuccessListener(aVoid1 -> {
-                                Log.d("PostContentAdapter", "Post deleted from Realtime Database: " + postId);
-
-                                // Обновление счётчика постов
-                                db.collection("Profiles").document(currentUserId)
-                                        .get()
-                                        .addOnSuccessListener(documentSnapshot -> {
-                                            if (documentSnapshot.exists()) {
-                                                Long currentPostCount = documentSnapshot.getLong("countPost");
-                                                if (currentPostCount != null && currentPostCount > 0) {
-                                                    db.collection("Profiles").document(currentUserId)
-                                                            .update("countPost", currentPostCount - 1)
-                                                            .addOnSuccessListener(aVoid2 -> {
-                                                                Log.d("PostContentAdapter", "Post count updated to: " + (currentPostCount - 1));
-                                                                // Уведомляем фрагмент об обновлении (если он существует)
-                                                                if (profileFragment != null) {
-                                                                    profileFragment.loadUserPosts(); // Перезагрузка постов
-                                                                }
-                                                            })
-                                                            .addOnFailureListener(e -> Log.e("PostAdapter", "Error updating post count", e));
-                                                }
-                                            }
-                                        })
-                                        .addOnFailureListener(e -> Log.e("PostAdapter", "Error fetching user document", e));
-                            })
-                            .addOnFailureListener(e -> Log.e("PostAdapter", "Error deleting from Realtime Database: " + e.getMessage(), e));
-                })
-                .addOnFailureListener(e -> Log.e("PostAdapter", "Error deleting post: " + e.getMessage(), e));
-    }
-
-    public void updateListDirectly(List<PostReferenceModel> newList) {
-        postList.clear();
-        postList.addAll(newList);
-        notifyDataSetChanged(); // Простое обновление всего списка
-    }
-
-    private void openAnotherProfile(String uid) {
-        Log.d("PostContentAdapter", "Opening profile for uid: " + uid);
-        Intent intent = new Intent(context, AnotherProfileActivity.class);
-        intent.putExtra("uid", uid);
-        intent.putExtra("fromChatsFragment", false);
-        if (context instanceof AppCompatActivity) {
-            ((AppCompatActivity) context).startActivity(intent);
-        } else {
-            context.startActivity(intent); // Попытка запуска напрямую
-        }
-    }
-
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class PostViewHolder extends RecyclerView.ViewHolder {
         ImageView imv_post_uid, imv_post_content;
-        TextView tv_post_uname, tv_post_likes, tv_post_city, tv_post_date,
-                tv_post_title, tv_post_location, tv_date;
-        ImageButton imb_post_likes, imb_post_delete, imb_read;
+        TextView tv_post_uname, tv_post_city, tv_post_location, tv_post_date, tv_post_likes;
+        ImageButton imb_post_likes;
+        TextView tv_follow, tv_post_delete;
 
-        public ViewHolder(@NonNull View itemView) {
+        public PostViewHolder(@NonNull View itemView) {
             super(itemView);
-            tv_date = itemView.findViewById(R.id.tv_date);
             imv_post_uid = itemView.findViewById(R.id.imv_post_uid);
             imv_post_content = itemView.findViewById(R.id.imv_post_content);
             tv_post_uname = itemView.findViewById(R.id.tv_post_uname);
+            tv_post_city = itemView.findViewById(R.id.tv_post_city);
+            tv_post_location = itemView.findViewById(R.id.tv_post_location);
+            tv_post_date = itemView.findViewById(R.id.tv_post_date);
             tv_post_likes = itemView.findViewById(R.id.tv_post_likes);
             imb_post_likes = itemView.findViewById(R.id.imb_post_likes);
-            tv_post_city = itemView.findViewById(R.id.tv_post_city);
-            tv_post_date = itemView.findViewById(R.id.tv_post_date);
-            imb_post_delete = itemView.findViewById(R.id.imb_post_delete);
-            tv_post_title = itemView.findViewById(R.id.tv_post_title);
-            tv_post_location = itemView.findViewById(R.id.tv_post_location);
-            imb_read = itemView.findViewById(R.id.imb_read);
-
-            // Добавляем отладочные логи
-            if (tv_date == null) Log.e("ViewHolder", "tv_date is null");
-            if (imv_post_uid == null) Log.e("ViewHolder", "imv_post_uid is null");
-            if (imv_post_content == null) Log.e("ViewHolder", "imv_post_content is null");
-            if (tv_post_uname == null) Log.e("ViewHolder", "tv_post_uname is null");
-            if (tv_post_likes == null) Log.e("ViewHolder", "tv_post_likes is null");
-            if (imb_post_likes == null) Log.e("ViewHolder", "imb_post_likes is null");
-            if (tv_post_city == null) Log.e("ViewHolder", "tv_post_city is null");
-            if (tv_post_date == null) Log.e("ViewHolder", "tv_post_date is null");
-            if (imb_post_delete == null) Log.e("ViewHolder", "imb_post_delete is null");
-            if (tv_post_title == null) Log.e("ViewHolder", "tv_post_title is null");
-            if (tv_post_location == null) Log.e("ViewHolder", "tv_post_location is null");
-            if (imb_read == null) Log.e("ViewHolder", "imb_read is null");
+            tv_post_delete = itemView.findViewById(R.id.tv_post_delete);
+            tv_follow = itemView.findViewById(R.id.tv_follow);
         }
     }
 
-    // Внутренний класс PostDiffCallback
-    public static class PostDiffCallback extends DiffUtil.Callback {
-        private final List<PostReferenceModel> oldList;
-        private final List<PostReferenceModel> newList;
+    public static class LoadingViewHolder extends RecyclerView.ViewHolder {
+        ProgressBar progressBar;
 
-        public PostDiffCallback(List<PostReferenceModel> oldList, List<PostReferenceModel> newList) {
-            this.oldList = oldList;
-            this.newList = newList;
+        public LoadingViewHolder(@NonNull View itemView) {
+            super(itemView);
+            progressBar = itemView.findViewById(R.id.progressBar);
         }
+    }
 
-        @Override
-        public int getOldListSize() {
-            return oldList.size();
-        }
+    // Переопределяем, чтобы убрать логику подписки
+    public void setupFollowButton(final TextView followButton, String authorId, String currentUserId, PostViewHolder holder) {
+        followButton.setVisibility(View.GONE);
+    }
 
-        @Override
-        public int getNewListSize() {
-            return newList.size();
-        }
+    private void deletePost(PostReferenceModel post) {
+        db.collection("Posts").document(post.getId())
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    int position = postList.indexOf(post);
+                    if (position != -1) {
+                        postList.remove(position);
+                        notifyItemRemoved(position);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(context, "Ошибка удаления поста", Toast.LENGTH_SHORT).show();
+                });
+    }
 
-        @Override
-        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-            return oldList.get(oldItemPosition).getId().equals(newList.get(newItemPosition).getId());
+    private Fragment getCurrentFragment() {
+        if (context instanceof FragmentActivity) {
+            FragmentActivity activity = (FragmentActivity) context;
+            return activity.getSupportFragmentManager().findFragmentById(R.id.fragment_container);
         }
-
-        @Override
-        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-            return oldList.get(oldItemPosition).equals(newList.get(newItemPosition));
-        }
+        return null;
     }
 }

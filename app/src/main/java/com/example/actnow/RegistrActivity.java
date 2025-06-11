@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Patterns;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -13,33 +16,68 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.actnow.Models.ProfileModel;
+import com.example.actnow.Models.UserProfile;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.Timestamp;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Calendar;
 
 public class RegistrActivity extends AppCompatActivity {
 
-    FirebaseAuth mAuth;
-    FirebaseFirestore firebaseFirestore;
-    CollectionReference collectionReference;
-
-    EditText et_register_username, et_register_email, et_register_passwd, et_register_confpasswd, et_register_city;
-    Button btn_register;
-    TextView tv_register;
+    private EditText emailEt, usernameEt, passwordEt, cityEt, birthDateEt;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registr);
 
-        initvar();
-        checklogin();
+        // Инициализация Firebase
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
-        // Настройка прозрачного статус-бара
+        // Находим все View элементы
+        emailEt = findViewById(R.id.email_et);
+        usernameEt = findViewById(R.id.username_et);
+        passwordEt = findViewById(R.id.password_et);
+        cityEt = findViewById(R.id.city_et);
+        birthDateEt = findViewById(R.id.birth_date_et);
+        Button regBtn = findViewById(R.id.reg_btn);
+        TextView goAuth = findViewById(R.id.go_auth);
+
+        // Добавляем обработчик для автоматической расстановки точек в дате рождения
+        birthDateEt.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() == 2 && before == 0) {
+                    birthDateEt.setText(s + ".");
+                    birthDateEt.setSelection(3);
+                } else if (s.length() == 5 && before == 0) {
+                    birthDateEt.setText(s + ".");
+                    birthDateEt.setSelection(6);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        // Обработчик кнопки регистрации
+        regBtn.setOnClickListener(v -> registerUser());
+
+        // Обработчик перехода к авторизации
+        goAuth.setOnClickListener(v -> {
+            startActivity(new Intent(RegistrActivity.this, AuthorizActivity.class));
+            finish();
+        });
+
+        // Устанавливаем прозрачный статус-бар для устройств с API 21+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             window.getDecorView().setSystemUiVisibility(
@@ -47,98 +85,176 @@ public class RegistrActivity extends AppCompatActivity {
             );
             window.setStatusBarColor(Color.TRANSPARENT);
         }
+    }
 
-        // Переход на экран авторизации
-        tv_register.setOnClickListener(v -> {
-            Intent intent = new Intent(RegistrActivity.this, AuthorizActivity.class);
-            startActivity(intent);
-        });
+    private void registerUser() {
+        String email = emailEt.getText().toString().trim();
+        String username = usernameEt.getText().toString().trim();
+        String password = passwordEt.getText().toString().trim();
+        String city = cityEt.getText().toString().trim();
+        String birthDateStr = birthDateEt.getText().toString().trim();
 
-        // Регистрация нового пользователя
-        btn_register.setOnClickListener(v -> {
-            String username = et_register_username.getText().toString().trim();
-            String email = et_register_email.getText().toString().trim();
-            String password = et_register_passwd.getText().toString().trim();
-            String confirmPassword = et_register_confpasswd.getText().toString().trim();
-            String city = et_register_city.getText().toString().trim();
+        // Валидация полей
+        if (!validateInputs(email, username, password, city, birthDateStr)) {
+            return;
+        }
 
-            if (username.isEmpty()) {
-                et_register_username.setError("Введите имя пользователя");
-                et_register_username.requestFocus();
-            } else if (email.isEmpty()) {
-                et_register_email.setError("Введите Email");
-                et_register_email.requestFocus();
-            } else if (password.isEmpty()) {
-                et_register_passwd.setError("Введите пароль");
-                et_register_passwd.requestFocus();
-            } else if (confirmPassword.isEmpty()) {
-                et_register_confpasswd.setError("Подтвердите пароль");
-                et_register_confpasswd.requestFocus();
-            } else if (!password.equals(confirmPassword)) {
-                Toast.makeText(RegistrActivity.this, "Пароли не совпадают", Toast.LENGTH_SHORT).show();
-            } else {
-                mAuth.createUserWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                String userId = mAuth.getCurrentUser().getUid();
-                                Map<String, Boolean> emptySubscriptions = new HashMap<>();
+        // Проверка возраста (минимум 15 лет)
+        if (!validateAge(birthDateStr)) {
+            Toast.makeText(this, "Регистрация доступна только для пользователей старше 15 лет",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-                                ProfileModel model = new ProfileModel(
-                                        userId,
-                                        username,
-                                        email,
-                                        password,
-                                        city,
-                                        0L,
-                                       0L,
-                                        0L,
-                                        emptySubscriptions
-                                );
+        // Проверка, что email не занят
+        mAuth.fetchSignInMethodsForEmail(email)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (task.getResult().getSignInMethods().isEmpty()) {
+                            // Если email не занят, продолжаем регистрацию
+                            createUserInFirebase(email, password, username, city, birthDateStr);
+                        } else {
+                            Toast.makeText(this, "Этот email уже зарегистрирован", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, "Ошибка проверки email", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
 
-                                collectionReference.document(userId).set(model)
-                                        .addOnCompleteListener(task1 -> {
-                                            if (task1.isSuccessful()) {
-                                                Toast.makeText(RegistrActivity.this, "Регистрация успешна", Toast.LENGTH_SHORT).show();
-                                                startActivity(new Intent(RegistrActivity.this, MainActivity.class));
-                                                finish();
-                                            } else {
-                                                Toast.makeText(RegistrActivity.this, "Ошибка Firestore: " + task1.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
-                            } else {
-                                String errorMessage = task.getException().getMessage();
-                                if (errorMessage.contains("The email address is already in use")) {
-                                    Toast.makeText(RegistrActivity.this, "Этот email уже зарегистрирован.", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    Toast.makeText(RegistrActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
+    private boolean validateInputs(String email, String username, String password,
+                                   String city, String birthDate) {
+        if (email.isEmpty()) {
+            emailEt.setError("Введите Email");
+            emailEt.requestFocus();
+            return false;
+        }
+
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailEt.setError("Введите корректный email");
+            emailEt.requestFocus();
+            return false;
+        }
+
+        if (username.isEmpty()) {
+            usernameEt.setError("Введите имя пользователя");
+            usernameEt.requestFocus();
+            return false;
+        }
+
+        if (username.matches(".*\\d.*")) {
+            usernameEt.setError("Имя пользователя не должно содержать цифры");
+            usernameEt.requestFocus();
+            return false;
+        }
+
+        if (password.isEmpty()) {
+            passwordEt.setError("Введите пароль");
+            passwordEt.requestFocus();
+            return false;
+        }
+
+        if (password.length() < 6) {
+            passwordEt.setError("Пароль должен содержать минимум 6 символов");
+            passwordEt.requestFocus();
+            return false;
+        }
+
+        if (city.isEmpty()) {
+            cityEt.setError("Введите город");
+            cityEt.requestFocus();
+            return false;
+        }
+
+        if (birthDate.isEmpty()) {
+            birthDateEt.setError("Введите дату рождения");
+            birthDateEt.requestFocus();
+            return false;
+        }
+
+        if (!birthDate.matches("\\d{2}\\.\\d{2}\\.\\d{4}")) {
+            birthDateEt.setError("Неверный формат даты (используйте ДД.ММ.ГГГГ)");
+            birthDateEt.requestFocus();
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean validateAge(String birthDateStr) {
+        try {
+            String[] parts = birthDateStr.split("\\.");
+            int day = Integer.parseInt(parts[0]);
+            int month = Integer.parseInt(parts[1]) - 1; // Месяцы в Calendar начинаются с 0
+            int year = Integer.parseInt(parts[2]);
+
+            Calendar birthDate = Calendar.getInstance();
+            birthDate.set(year, month, day);
+
+            Calendar today = Calendar.getInstance();
+            int age = today.get(Calendar.YEAR) - birthDate.get(Calendar.YEAR);
+
+            if (today.get(Calendar.DAY_OF_YEAR) < birthDate.get(Calendar.DAY_OF_YEAR)) {
+                age--;
             }
-        });
+
+            return age >= 15;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
-    private void initvar() {
-        mAuth = FirebaseAuth.getInstance();
-        firebaseFirestore = FirebaseFirestore.getInstance();
-        collectionReference = firebaseFirestore.collection("Profiles");
-
-        et_register_username = findViewById(R.id.userN_et);
-        et_register_email = findViewById(R.id.email_et);
-        et_register_passwd = findViewById(R.id.password_et);
-        et_register_confpasswd = findViewById(R.id.password_et);
-        et_register_city = findViewById(R.id.city_et);
-
-        btn_register = findViewById(R.id.reg_btn);
-        tv_register = findViewById(R.id.go_avt);
+    private void createUserInFirebase(String email, String password,
+                                      String username, String city, String birthDate) {
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                        if (firebaseUser != null) {
+                            saveUserProfile(firebaseUser.getUid(), email, username, city, birthDate);
+                        }
+                    } else {
+                        Toast.makeText(this, "Ошибка регистрации: " +
+                                task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
-    private void checklogin() {
-        if (mAuth.getCurrentUser() != null) {
-            Intent intent = new Intent(RegistrActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish();
+    private void saveUserProfile(String userId, String email, String username,
+                                 String city, String birthDateStr) {
+        try {
+            // Парсим дату рождения
+            String[] parts = birthDateStr.split("\\.");
+            int day = Integer.parseInt(parts[0]);
+            int month = Integer.parseInt(parts[1]) - 1;
+            int year = Integer.parseInt(parts[2]);
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(year, month, day);
+            Timestamp birthDate = new Timestamp(calendar.getTime());
+
+            // Создаем профиль пользователя
+            UserProfile userProfile = new UserProfile(userId, email, username, "volunteer");
+            userProfile.setCity(city);
+            userProfile.setBirthDate(birthDate);
+            userProfile.setBio("");
+            userProfile.setProfileImage("");
+            userProfile.setBackgroundImageUrl("");
+
+            // Сохраняем в Firestore
+            db.collection("Profiles").document(userId)
+                    .set(userProfile.toMap())
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(this, "Регистрация успешна!", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(this, MainActivity.class));
+                            finish();
+                        } else {
+                            Toast.makeText(this, "Ошибка сохранения профиля", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        } catch (Exception e) {
+            Toast.makeText(this, "Ошибка обработки даты рождения", Toast.LENGTH_SHORT).show();
         }
     }
 }
-

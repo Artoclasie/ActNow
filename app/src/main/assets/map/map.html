@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карта Беларуси</title>
+    <link rel="stylesheet" href="maptiler-sdk.css" />
+    <script src="maptiler-sdk.umd.js"></script>
+    <style>
+        #map { height: 100vh; width: 100%; position: absolute; top: 0; left: 0; z-index: 0; background-color: #ff0000; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+        .maptiler-popup {
+            background: linear-gradient(135deg, #ff4081, #ff6f00);
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(255, 64, 129, 0.5);
+            border: 3px solid #ff1744;
+            padding: 10px;
+            font-family: 'Arial', sans-serif;
+            color: #333333;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        .maptiler-popup::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 10px 10px 0 10px;
+            border-style: solid;
+            border-color: #ff6f00 transparent transparent transparent;
+        }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+    // Проверка поддержки WebGL
+    function checkWebGLSupport() {
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (!gl) {
+            console.error("WebGL не поддерживается на этом устройстве!");
+            return false;
+        }
+        console.log("WebGL поддерживается!");
+        return true;
+    }
+
+    console.log("map.html загружен и JavaScript запущен");
+
+    const maptilerApiKey = "dg0jVpNw8RFjDHYjqmLr";
+    const { Map, Marker, Popup } = maptilersdk;
+
+    let map;
+    let markers = [];
+
+    if (checkWebGLSupport()) {
+        try {
+            maptilersdk.config.apiKey = maptilerApiKey;
+           map = new Map({
+               container: 'map',
+               style: 'https://api.maptiler.com/maps/streets/style.json?key=' + maptilerApiKey,
+               center: [27.5667, 53.9], // Минск
+               zoom: 10,
+               minZoom: 5, // Уменьшим минимальный зум для проверки
+               maxZoom: 18,
+               attributionControl: false
+           });
+
+           // Автоматическая проверка и адаптация размеров
+           map.on('load', function() {
+               console.log("Карта полностью загружена и готова к использованию");
+               const bounds = map.getBounds();
+               console.log("Границы карты: ", bounds);
+               if (map.getZoom() > 15) {
+                   map.setZoom(10); // Сбросим зум, если слишком близко
+               }
+           });
+
+            map.on('style.load', function() {
+                console.log("Стиль карты загружен");
+            });
+            map.on('render', function() {
+                console.log("Рендеринг карты выполнен");
+            });
+            map.on('load', function() {
+                console.log("Карта полностью загружена и готова к использованию");
+            });
+            map.on('error', function(e) {
+                console.error("Ошибка загрузки карты: ", e.error);
+                fetch('https://api.maptiler.com/maps/streets/style.json?key=' + maptilerApiKey, { timeout: 5000 })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Сетевой запрос неуспешен');
+                        console.log("Сетевое подключение работает");
+                    })
+                    .catch(error => {
+                        console.error("Ошибка сети: ", error.message);
+                    });
+            });
+            map.on('tileloadstart', function(e) {
+                console.log("Начало загрузки тайла: ", e.tileId);
+            });
+            map.on('tileload', function(e) {
+                console.log("Тайл загружен: ", e.tileId);
+            });
+            map.on('tileerror', function(e) {
+                console.error("Ошибка загрузки тайла: ", e.tileId, e.error);
+            });
+
+            const mapDiv = document.getElementById('map');
+            if (mapDiv.offsetHeight === 0 || mapDiv.offsetWidth === 0) {
+                console.error("Div карты не виден! Размеры: " + mapDiv.offsetWidth + "x" + mapDiv.offsetHeight);
+            } else {
+                console.log("Div карты виден. Размеры: " + mapDiv.offsetWidth + "x" + mapDiv.offsetHeight);
+            }
+        } catch (e) {
+            console.error("Ошибка инициализации карты: ", e);
+        }
+    }
+
+    window.addEventListener('message', function(event) {
+        const data = event.data;
+        console.log("Получено сообщение от Android: ", data);
+
+        if (!map) {
+            console.error("Карта не инициализирована, обработка сообщения невозможна");
+            return;
+        }
+
+        if (data.action === 'addMarker') {
+            const popup = new Popup().setHTML(`<b>${data.title}</b><br>${data.snippet || ''}`);
+            const marker = new Marker()
+                .setLngLat([data.lng, data.lat])
+                .setPopup(popup)
+                .addTo(map);
+            markers.push(marker);
+            if (data.isUserMarker || data.isEventMarker) marker.togglePopup();
+            console.log("Маркер добавлен: ", data.title, [data.lat, data.lng]);
+        } else if (data.action === 'clearMarkers') {
+            markers.forEach(marker => marker.remove());
+            markers = [];
+            console.log("Все маркеры удалены");
+        } else if (data.action === 'moveToLocation') {
+            map.flyTo({
+                center: [data.lng, data.lat],
+                zoom: data.zoom,
+                duration: 1000,
+                easing: function(t) { return t * (2 - t); }
+            });
+            console.log("Перемещение к: ", [data.lat, data.lng], "Zoom: ", data.zoom);
+        } else if (data.action === 'loadMarkers') {
+            data.markers.forEach(markerData => {
+                const popup = new Popup().setHTML(`<b>${markerData.title}</b><br>${markerData.snippet || ''}`);
+                const marker = new Marker()
+                    .setLngLat([markerData.lng, markerData.lat])
+                    .setPopup(popup)
+                    .addTo(map);
+                markers.push(marker);
+                if (markerData.isUserMarker || markerData.isEventMarker) marker.togglePopup();
+                console.log("Загружен маркер: ", markerData.title, [markerData.lat, markerData.lng]);
+            });
+        }
+    });
+
+    if (map) {
+        map.on('click', function(e) {
+            if (window.Android) {
+                window.Android.onMapClick(e.lngLat.lat, e.lngLat.lng);
+                console.log("Клик по карте: ", e.lngLat.lat, e.lngLat.lng);
+            }
+        });
+    } else {
+        console.error("Карта не инициализирована, обработчик кликов не установлен");
+    }
+
+    if (window.Android) {
+        console.log("Запрос маркеров у Android");
+        window.Android.requestMarkers();
+    }
+</script>
+</body>
+</html>

@@ -5,119 +5,164 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
-import com.example.actnow.Adapters.PostContentAdapter;
-import com.example.actnow.Models.PostReferenceModel;
+import com.example.actnow.Adapters.HomeViewPagerAdapter;
 import com.example.actnow.R;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-
-import java.util.ArrayList;
-import java.util.Collections;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
+import com.google.android.material.textfield.TextInputEditText;
 
 public class HomeFragment extends Fragment {
+    private ViewPager2 viewPager;
+    private TabLayout tabLayout;
+    private LinearLayout searchLayout;
+    private ImageView ivSearch;
+    private TextInputEditText etSearch;
+    private ChipGroup filterChipGroup;
+    private HomeViewPagerAdapter adapter;
 
-    private RecyclerView rv_posts;
-    private PostContentAdapter postContentAdapter; // Объявляем как поле класса
-    private FirebaseFirestore db;
-    private ArrayList<PostReferenceModel> postList = new ArrayList<>();
-    private ArrayList<String> keys = new ArrayList<>();
-
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_home, container, false);
-
-        // Инициализация Firestore
-        db = FirebaseFirestore.getInstance();
-
-        // Инициализация RecyclerView
-        rv_posts = view.findViewById(R.id.rv_news);
-        rv_posts.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        // Инициализация списка постов и адаптера
-        postContentAdapter = new PostContentAdapter(postList, getContext()); // Используем конструктор с двумя параметрами
-        rv_posts.setAdapter(postContentAdapter);
-
-        // Загрузка постов
-        loadPosts();
-
-        return view;
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_home, container, false);
     }
 
-    private void loadPosts() {
-        CollectionReference postsRef = db.collection("Posts");
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        initializeViews(view);
+        setupViewPager();
+        setupSearchView();
+    }
 
-        postsRef.addSnapshotListener((snapshot, error) -> {
-            if (error != null) {
-                Log.e("HomeFragment", "Error: " + error.getMessage());
-                return;
+    private void initializeViews(View view) {
+        viewPager = view.findViewById(R.id.viewPager);
+        tabLayout = view.findViewById(R.id.tabLayout);
+        searchLayout = view.findViewById(R.id.searchLayout);
+        ivSearch = view.findViewById(R.id.ivSearch);
+        etSearch = view.findViewById(R.id.etSearch);
+        filterChipGroup = view.findViewById(R.id.filterChipGroup);
+    }
+
+    private void setupViewPager() {
+        adapter = new HomeViewPagerAdapter(this);
+        viewPager.setAdapter(adapter);
+
+        // Connect TabLayout with ViewPager2
+        new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
+            switch (position) {
+                case 0:
+                    tab.setText("Все события");
+                    break;
+                case 1:
+                    tab.setText("Новости");
+                    break;
+                case 2:
+                    tab.setText("Волонтёры");
+                    break;
+                default:
+                    tab.setText("Ошибка");
             }
+        }).attach();
 
-            if (snapshot != null) {
-                // Сохраняем текущую позицию прокрутки и смещение
-                LinearLayoutManager layoutManager = (LinearLayoutManager) rv_posts.getLayoutManager();
-                int scrollPosition = layoutManager.findFirstVisibleItemPosition();
-                View firstVisibleView = layoutManager.findViewByPosition(scrollPosition);
-                int offset = (firstVisibleView == null) ? 0 : (firstVisibleView.getTop() - layoutManager.getPaddingTop());
-
-                // Очищаем список перед загрузкой новых данных
-                postList.clear();
-                keys.clear();
-
-                // Загружаем все посты заново
-                for (QueryDocumentSnapshot postSnapshot : snapshot) {
-                    PostReferenceModel post = postSnapshot.toObject(PostReferenceModel.class);
-                    String postId = postSnapshot.getId();
-
-                    db.collection("Profiles").document(post.getUid())
-                            .get()
-                            .addOnSuccessListener(documentSnapshot -> {
-                                if (documentSnapshot != null && documentSnapshot.exists()) {
-                                    post.setUsername(documentSnapshot.getString("username"));
-                                    post.setProfileImageUrl(documentSnapshot.getString("profileImageUrl"));
-                                    post.setCity(documentSnapshot.getString("city"));
-                                    post.setId(postId); // Устанавливаем ID
-
-                                    postList.add(post);
-                                    keys.add(postId);
-                                    Log.d("HomeFragment", "Loaded post: " + postId);
-                                } else {
-                                    Log.w("HomeFragment", "Profile not found for post: " + postId);
-                                }
-
-                                // Выполняем сортировку и обновление адаптера после загрузки всех данных
-                                if (postList.size() == snapshot.size()) {
-                                    sortPostsByDate();
-                                    postContentAdapter.notifyDataSetChanged();
-                                    rv_posts.post(() -> {
-                                        if (scrollPosition != RecyclerView.NO_POSITION && scrollPosition < postList.size()) {
-                                            layoutManager.scrollToPositionWithOffset(scrollPosition, offset);
-                                        }
-                                    });
-                                }
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e("HomeFragment", "Error loading user data for post " + postId + ": " + e.getMessage());
-                            });
-                }
+        // Handle page changes
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                updateSearchFilters(position);
             }
         });
     }
 
-    private void sortPostsByDate() {
-        Collections.sort(postList, (post1, post2) -> {
-            // Сортируем по timestamp, чтобы последний пост был первым
-            if (post1.getTimestamp() == null || post2.getTimestamp() == null) {
-                return 0; // Если timestamp отсутствует, не меняем порядок
+    private void setupSearchView() {
+        ivSearch.setOnClickListener(v -> {
+            if (searchLayout.getVisibility() == View.VISIBLE) {
+                searchLayout.setVisibility(View.GONE);
+            } else {
+                searchLayout.setVisibility(View.VISIBLE);
             }
-            return post2.getTimestamp().compareTo(post1.getTimestamp()); // Сортировка по убыванию
         });
+
+        // Начальная настройка фильтров (по умолчанию - вкладка "Все события")
+        updateSearchFilters(0);
+
+        // Поиск при нажатии на Enter
+        etSearch.setOnEditorActionListener((v, actionId, event) -> {
+            performSearch();
+            return true;
+        });
+
+        // Автоматический поиск при изменении фильтров
+        filterChipGroup.setOnCheckedChangeListener((group, checkedId) -> performSearch());
+    }
+
+    private void updateSearchFilters(int position) {
+        filterChipGroup.removeAllViews();
+
+        switch (position) {
+            case 0: // Events
+                addFilterChip("Животные");
+                addFilterChip("Ветераны");
+                addFilterChip("Молодеж");
+                addFilterChip("Экология");
+                addFilterChip("Образование");
+                addFilterChip("Спорт");
+                break;
+            case 1: // News (Posts)
+            case 2: // Volunteers (Organizers)
+                addFilterChip("Организаторы");
+                addFilterChip("Организации");
+                addFilterChip("Волонтёры");
+                break;
+        }
+    }
+
+    private void addFilterChip(String text) {
+        Chip chip = new Chip(requireContext());
+        chip.setText(text);
+        chip.setCheckable(true);
+        chip.setCheckedIconVisible(true);
+        chip.setChipBackgroundColorResource(R.color.chip_background);
+        chip.setTextColor(ContextCompat.getColor(requireContext(), R.color.text));
+        filterChipGroup.addView(chip);
+    }
+
+    private void performSearch() {
+        String query = etSearch.getText() != null ? etSearch.getText().toString().trim() : "";
+        StringBuilder filters = new StringBuilder();
+
+        // Собираем выбранные фильтры
+        for (int i = 0; i < filterChipGroup.getChildCount(); i++) {
+            Chip chip = (Chip) filterChipGroup.getChildAt(i);
+            if (chip.isChecked()) {
+                if (filters.length() > 0) filters.append(",");
+                filters.append(chip.getText());
+            }
+        }
+
+        // Передаем запрос и фильтры в текущий фрагмент
+        Fragment currentFragment = adapter.getFragment(viewPager.getCurrentItem());
+        if (currentFragment instanceof SearchableFragment) {
+            ((SearchableFragment) currentFragment).onSearch(query, filters.toString());
+        } else {
+            Toast.makeText(requireContext(), "Поиск не поддерживается в этой вкладке", Toast.LENGTH_SHORT).show();
+            Log.w("HomeFragment", "Fragment at position " + viewPager.getCurrentItem() + " does not implement SearchableFragment");
+        }
+    }
+
+    // Interface for searchable fragments
+    public interface SearchableFragment {
+        void onSearch(String query, String filters);
     }
 }

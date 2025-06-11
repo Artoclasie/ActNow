@@ -1,8 +1,21 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.ActNow" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="android:statusBarColor">@android:color/transparent</item>
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ActNow" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Основные цвета -->
+        <item name="colorPrimary">@color/button</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorSurface">@color/back</item>
+        <item name="colorOnSurface">@color/text</item>
 
-        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <!-- Текст -->
+        <item name="android:textColorPrimary">@color/text</item>
+        <item name="android:textColorSecondary">@color/post</item>
+    </style>
+
+    <style name="CircleImageViewSmall" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+        <item name="strokeColor">@color/white</item>
+        <item name="strokeWidth">2dp</item>
     </style>
 </resources>

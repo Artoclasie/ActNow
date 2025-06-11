@@ -4,21 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".AuthorizActivity">
-
-    <ImageView
-        android:id="@+id/fon_login"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:backgroundTint="#144971FF"
-        android:scaleType="centerCrop"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@drawable/ava4" />
+    tools:context=".AuthorizActivity"
+    android:background="@color/back">
 
     <TextView
         android:id="@+id/welcome"
@@ -113,6 +100,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/aut_btn" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
