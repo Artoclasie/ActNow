@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/back">
+
+    <!-- Toolbar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/back"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:padding="8dp"
+                android:src="@drawable/out"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Изменить профиль"
+                android:textColor="@color/text"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/btnBack"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/btnMenu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_edit"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/btnSave"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/btnSave"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="Сохранить"
+                android:textColor="@color/text"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:isScrollContainer="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Фон профиля -->
+            <RelativeLayout
+                android:id="@+id/backgroundContainer"
+                android:layout_width="match_parent"
+                android:layout_height="180dp">
+
+                <!-- Фоновое изображение -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cv_profile_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:cardBackgroundColor="@color/button"
+                    app:cardCornerRadius="0dp"
+                    app:cardElevation="0dp">
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                        <ImageView
+                            android:id="@+id/profileBackImageView"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:adjustViewBounds="true"
+                            android:contentDescription="@string/profile_image_desc"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/ava"
+                            android:alpha="0.7"/>
+
+                        <!-- Иконка камеры на фоне -->
+                        <ImageView
+                            android:id="@+id/btnChangeBackground"
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_camera"
+                            app:tint="#80FFFFFF" />
+                    </FrameLayout>
+                </androidx.cardview.widget.CardView>
+            </RelativeLayout>
+
+            <!-- Аватар с кнопкой -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-30dp"
+                android:paddingStart="16dp">
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cv_post_uid"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    app:cardCornerRadius="40dp"
+                    android:elevation="8dp">
+
+                    <ImageView
+                        android:id="@+id/imv_post_uid"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="@string/profile_avatar_desc"
+                        android:src="@drawable/default_profile_picture"/>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Кнопка изменения аватара -->
+                <ImageView
+                    android:id="@+id/btnChangeAvatar"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_alignBottom="@id/cv_post_uid"
+                    android:layout_alignEnd="@id/cv_post_uid"
+                    android:src="@drawable/ic_camera"
+                    android:background="@drawable/circle_white_bg"
+                    android:padding="8dp"
+                    android:elevation="8dp"/>
+            </RelativeLayout>
+
+            <!-- Основные поля профиля -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Имя -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Имя"
+                    android:textColor="@color/text"
+                    android:textSize="16sp" />
+
+                <EditText
+                    android:id="@+id/etUsername"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/text"
+                    android:background="@android:color/transparent"
+                    android:padding="8dp"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@color/chip_stroke"/>
+
+                <!-- О себе -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="О себе"
+                    android:textColor="@color/text"
+                    android:textSize="16sp" />
+
+                <EditText
+                    android:id="@+id/etBio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/text"
+                    android:background="@android:color/transparent"
+                    android:padding="8dp"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@color/chip_stroke"/>
+
+                <!-- Местоположение -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Местоположение"
+                    android:textColor="@color/text"
+                    android:textSize="16sp" />
+
+                <EditText
+                    android:id="@+id/etLocation"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/text"
+                    android:background="@android:color/transparent"
+                    android:padding="8dp"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@color/chip_stroke"/>
+
+                <!-- Дата рождения -->
+                <TextView
+                    android:id="@+id/tvBirthDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Дата рождения"
+                    android:textColor="@color/text"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/tvBirthDateValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/text"
+                    android:textSize="14sp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground"/>
+
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
