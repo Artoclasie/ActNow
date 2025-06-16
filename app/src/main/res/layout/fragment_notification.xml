@@ -9,12 +9,14 @@
     <TextView
         android:id="@+id/tv_header"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="55dp"
         android:padding="16dp"
-        android:text="Уведомления"
+        android:text="   Уведомления"
+        android:fontFamily="@font/barkentina"
         android:textColor="@color/text"
-        android:textSize="24sp"
+        android:textSize="22sp"
         android:textStyle="bold"
+        android:background="@color/button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

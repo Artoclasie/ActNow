@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="16dp"
-    android:background="#FFF5F7"
+    android:background="@color/back"
     android:elevation="4dp"
     android:layout_margin="8dp">
 
@@ -21,14 +21,14 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/tv_title"
+            android:id="@+id/tv_event_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textColor="@color/previwtext"
             android:gravity="center"
-            android:paddingBottom="4dp"
-            android:textColor="@color/text"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:fontFamily="@font/barkentina"
+            android:textSize="18sp" />
 
         <TextView
             android:id="@+id/tv_date_time"
@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:paddingBottom="8dp"
-            android:textColor="@color/text"
+            android:textColor="@color/gray"
             android:textSize="12sp" />
 
         <LinearLayout
@@ -83,9 +83,9 @@
             android:layout_height="wrap_content"
             android:paddingBottom="2dp"
             android:gravity="center"
+            android:fontFamily="@font/barkentina"
             android:textColor="@color/text"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textSize="16sp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

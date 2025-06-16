@@ -8,124 +8,133 @@
     android:padding="16dp">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp"
-        android:background="@color/back">
+        android:id="@+id/cv_settings"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    android:background="@color/back">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/back"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Заголовок с кнопкой назад -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="550dp"
-            android:background="@color/back"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <!-- Заголовок с кнопкой назад -->
-            <LinearLayout
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="8dp"
-                    android:text="Настройки"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <!-- Кнопка "Изменить профиль" -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEditProfile"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:text="Изменить профиль" />
-
-            <!-- Кнопка "Стать организатором" -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnBecomeOrganizer"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:text="Стать организатором" />
-
-            <!-- Уведомления -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingVertical="8dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Уведомления"
-                    android:textSize="16sp" />
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchNotifications"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-
-            <!-- Тема -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingVertical="8dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:text="Тема"
-                    android:textSize="16sp" />
-
-                <RadioGroup
-                    android:id="@+id/rgTheme"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <RadioButton
-                        android:id="@+id/rbLight"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Светлая" />
-
-                    <RadioButton
-                        android:id="@+id/rbDark"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Темная" />
-                </RadioGroup>
-            </LinearLayout>
-
-            <!-- Кнопки действий -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnLogout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Выйти из аккаунта" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDeleteAccount"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Удалить аккаунт" />
+                android:paddingStart="8dp"
+                android:fontFamily="@font/barkentina"
+                android:text="Настройки"
+                android:textColor="@color/text"
+                android:textSize="22sp"
+                android:textStyle="bold" />
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
-</LinearLayout>
+
+        <!-- Кнопка "Изменить профиль" -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEditProfile"
+            style="@style/LongButtonStyle"
+            android:layout_marginBottom="10dp"
+            android:text="Изменить профиль" />
+
+        <!-- Кнопка "Стать организатором" -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBecomeOrganizer"
+            style="@style/LongButtonStyle"
+            android:layout_marginBottom="16dp"
+            android:text="Стать организатором" />
+
+        <!-- Уведомления -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingVertical="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Уведомления"
+                android:textColor="@color/text"
+                android:fontFamily="@font/barkentina"
+                android:textSize="18sp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchNotifications"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- Тема -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingVertical="8dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Тема"
+                android:textStyle="bold"
+                android:fontFamily="@font/barkentina"
+                android:textColor="@color/text"
+                android:textSize="18sp" />
+
+            <RadioGroup
+                android:id="@+id/rgTheme"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/rbLight"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Светлая"
+                    android:fontFamily="@font/barkentina"
+                    android:textSize="16sp"
+                    android:textColor="@color/text"/>
+
+                <RadioButton
+                    android:id="@+id/rbDark"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/barkentina"
+                    android:textSize="16sp"
+                    android:text="Темная" />
+            </RadioGroup>
+        </LinearLayout>
+
+        <!-- Кнопки действий -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogout"
+            style="@style/LongButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Выйти из аккаунта" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDeleteAccount"
+            style="@style/TwoLongButtonStyle"
+            android:backgroundTint="@android:color/transparent"
+            android:text="Удалить аккаунт" />
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
+    </LinearLayout>

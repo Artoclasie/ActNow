@@ -8,7 +8,6 @@
     android:background="@color/back"
     tools:context=".MainActivity">
 
-    <!-- ViewPager для прокрутки страниц -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/pager"
         android:layout_width="match_parent"
@@ -19,7 +18,6 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
 
-    <!-- Прямоугольная область с вкладками -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardViewContainer"
         android:layout_width="match_parent"
@@ -34,10 +32,10 @@
             android:id="@+id/apptabs"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:background="@color/menu"
-            app:tabIconTint="@color/button"
-            app:tabIndicatorColor="@color/button"
-            app:tabSelectedTextColor="@color/text">
+            android:background="@color/button"
+            app:tabIconTint="@color/back"
+            app:tabIndicatorColor="@color/back"
+            app:tabSelectedTextColor="@color/back">
 
             <com.google.android.material.tabs.TabItem
                 android:id="@+id/tab_home"
@@ -80,5 +78,4 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

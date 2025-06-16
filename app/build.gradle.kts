@@ -15,7 +15,6 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -34,16 +33,16 @@ android {
     }
     buildFeatures {
         viewBinding = true
-        compose = true // Добавлено для поддержки Compose
+        compose = true
+        buildConfig = true
     }
     kotlinOptions {
-        jvmTarget = "11" // Добавлено для Kotlin
+        jvmTarget = "11"
     }
 }
 
 dependencies {
-    implementation (libs.core.ktx) // или более новая версия
-    // Базовые зависимости Android
+    implementation(libs.core.ktx)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -67,8 +66,11 @@ dependencies {
 
     // Библиотеки изображений
     implementation(libs.github.glide)
+    implementation(libs.navigation.fragment)
+    implementation(libs.navigation.ui)
     annotationProcessor(libs.compiler)
-    implementation (libs.google.gson)
+    implementation(libs.google.gson)
+
     // Навигация
     implementation(libs.navigation.fragment.ktx)
     implementation(libs.navigation.ui.ktx)
@@ -76,7 +78,7 @@ dependencies {
     // ViewPager2 и индикатор точек
     implementation(libs.viewpager2)
     implementation(libs.dotsindicator)
-    implementation (libs.swiperefreshlayout)
+    implementation(libs.swiperefreshlayout)
 
     // Тестирование
     testImplementation(libs.junit)
@@ -89,11 +91,9 @@ dependencies {
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
 
-    implementation (libs.material.v1110)
+    implementation(libs.material.v1110)
     // Cloudinary
     implementation(libs.cloudinary.android)
-    implementation (libs.firebase.messaging)
-
-    //карты
+    implementation(libs.firebase.messaging)
 
 }

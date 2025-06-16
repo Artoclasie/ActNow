@@ -156,7 +156,6 @@ public class EventReportModel {
         this.createdAt = createdAt;
     }
 
-    // Helper methods
     public void addFeedbackComment(String comment) {
         if (comment != null && !comment.isEmpty()) {
             feedbackComments.add(comment);

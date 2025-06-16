@@ -10,14 +10,15 @@ public class MessageModel {
     private String messageId;
     private String chatId;
     private String senderId;
+    private String receiverId;
     private String content;
-    private String type; // text, image, file
+    private String type;
     private List<String> images;
     private String fileUrl;
     private String fileName;
     private long fileSize;
     private List<String> mentionedUsers;
-    private boolean isRead;
+    private boolean isRead; // Поле
     private Timestamp createdAt;
 
     public MessageModel() {
@@ -27,16 +28,16 @@ public class MessageModel {
         this.createdAt = Timestamp.now();
     }
 
-    public MessageModel(String messageId, String chatId, String senderId, String content, String type) {
+    public MessageModel(String messageId, String chatId, String senderId, String receiverId, String content, String type) {
         this();
         this.messageId = messageId;
         this.chatId = chatId;
         this.senderId = senderId;
+        this.receiverId = receiverId;
         this.content = content;
         this.type = type;
     }
 
-    // Getters and Setters
     public String getMessageId() { return messageId; }
     public void setMessageId(String messageId) { this.messageId = messageId; }
 
@@ -45,6 +46,9 @@ public class MessageModel {
 
     public String getSenderId() { return senderId; }
     public void setSenderId(String senderId) { this.senderId = senderId; }
+
+    public String getReceiverId() { return receiverId; }
+    public void setReceiverId(String receiverId) { this.receiverId = receiverId; }
 
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
@@ -67,13 +71,30 @@ public class MessageModel {
     public List<String> getMentionedUsers() { return mentionedUsers; }
     public void setMentionedUsers(List<String> mentionedUsers) { this.mentionedUsers = mentionedUsers; }
 
-    public boolean isRead() { return isRead; }
-    public void setRead(boolean read) { isRead = read; }
+    public boolean isRead() { return isRead; } // Геттер для булевого поля
+    public void setIsRead(boolean isRead) { this.isRead = isRead; } // Сеттер с правильным именем
 
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
 
-    // Helper methods
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("messageId", messageId);
+        map.put("chatId", chatId);
+        map.put("senderId", senderId);
+        map.put("receiverId", receiverId);
+        map.put("content", content);
+        map.put("type", type);
+        map.put("images", images);
+        map.put("fileUrl", fileUrl);
+        map.put("fileName", fileName);
+        map.put("fileSize", fileSize);
+        map.put("mentionedUsers", mentionedUsers);
+        map.put("isRead", isRead);
+        map.put("createdAt", createdAt);
+        return map;
+    }
+
     public void addImage(String imageUrl) {
         if (images.size() < 5 && !images.contains(imageUrl)) {
             images.add(imageUrl);
@@ -92,22 +113,5 @@ public class MessageModel {
 
     public void removeMentionedUser(String userId) {
         mentionedUsers.remove(userId);
-    }
-
-    public Map<String, Object> toMap() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("messageId", messageId);
-        map.put("chatId", chatId);
-        map.put("senderId", senderId);
-        map.put("content", content);
-        map.put("type", type);
-        map.put("images", images);
-        map.put("fileUrl", fileUrl);
-        map.put("fileName", fileName);
-        map.put("fileSize", fileSize);
-        map.put("mentionedUsers", mentionedUsers);
-        map.put("isRead", isRead);
-        map.put("createdAt", createdAt);
-        return map;
     }
 }

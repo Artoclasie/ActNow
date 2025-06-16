@@ -21,7 +21,7 @@
             android:layout_height="wrap_content"
             android:text="Какое доброе дело вы сделали?"
             android:textColor="@color/text"
-            android:textSize="20sp"
+            android:textSize="22sp"
             android:textStyle="bold"
             android:fontFamily="@font/barkentina"
             app:layout_constraintTop_toTopOf="parent"

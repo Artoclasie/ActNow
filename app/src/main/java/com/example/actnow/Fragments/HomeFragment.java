@@ -94,16 +94,13 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // Начальная настройка фильтров (по умолчанию - вкладка "Все события")
         updateSearchFilters(0);
 
-        // Поиск при нажатии на Enter
         etSearch.setOnEditorActionListener((v, actionId, event) -> {
             performSearch();
             return true;
         });
 
-        // Автоматический поиск при изменении фильтров
         filterChipGroup.setOnCheckedChangeListener((group, checkedId) -> performSearch());
     }
 
@@ -119,8 +116,8 @@ public class HomeFragment extends Fragment {
                 addFilterChip("Образование");
                 addFilterChip("Спорт");
                 break;
-            case 1: // News (Posts)
-            case 2: // Volunteers (Organizers)
+            case 1:
+            case 2:
                 addFilterChip("Организаторы");
                 addFilterChip("Организации");
                 addFilterChip("Волонтёры");
@@ -142,7 +139,6 @@ public class HomeFragment extends Fragment {
         String query = etSearch.getText() != null ? etSearch.getText().toString().trim() : "";
         StringBuilder filters = new StringBuilder();
 
-        // Собираем выбранные фильтры
         for (int i = 0; i < filterChipGroup.getChildCount(); i++) {
             Chip chip = (Chip) filterChipGroup.getChildAt(i);
             if (chip.isChecked()) {
@@ -151,7 +147,6 @@ public class HomeFragment extends Fragment {
             }
         }
 
-        // Передаем запрос и фильтры в текущий фрагмент
         Fragment currentFragment = adapter.getFragment(viewPager.getCurrentItem());
         if (currentFragment instanceof SearchableFragment) {
             ((SearchableFragment) currentFragment).onSearch(query, filters.toString());
@@ -161,7 +156,6 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    // Interface for searchable fragments
     public interface SearchableFragment {
         void onSearch(String query, String filters);
     }

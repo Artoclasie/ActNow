@@ -1,41 +1,50 @@
 [versions]
-agp = "8.8.1"
+agp = "8.8.2"
+androidPluginAnnotationV9 = "2.0.0"
+androidSdk = "10.2.0"
 cloudinaryAndroid = "3.0.2"
 compiler = "4.16.0"
-constraintlayoutVersion = "2.2.0"
+constraintlayoutVersion = "2.2.1"
 coreKtx = "1.16.0"
 dotsindicator = "4.3"
-firebaseBom = "33.9.0"
+firebaseBom = "33.15.0"
 firebaseDatabaseVersion = "21.0.0"
 firebaseMessaging = "24.1.1"
 gsonVersion = "2.10.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-appcompat = "1.7.0"
-maptilerSdk = "6.4.0"
+appcompat = "1.7.1"
+mapboxAndroidPluginLocationlayer = "0.12.0"
+maplibreSdk = "10.2.0"
+mapsMobile = "4.4.0-rev121"
+maptilerSdkVersion = "6.6.0"
 material = "1.12.0"
-activity = "1.10.0"
-constraintlayout = "2.2.0"
-firebaseAuth = "23.2.0"
+activity = "1.10.1"
+constraintlayout = "2.2.1"
+firebaseAuth = "23.2.1"
 firebaseDatabase = "21.0.0"
 kotlin = "2.0.0"
-lifecycleRuntimeKtx = "2.8.7"
-activityCompose = "1.10.0"
-composeBom = "2025.02.00"
-firebaseFirestore = "25.1.2"
-materialVersion = "1.11.0"
-navigationFragmentKtx = "2.8.7"
-navigationUiKtx = "2.8.7"
+lifecycleRuntimeKtx = "2.9.1"
+activityCompose = "1.10.1"
+composeBom = "2025.06.00"
+firebaseFirestore = "25.1.4"
+materialVersion = "1.12.0"
+navigationFragmentKtx = "2.9.0"
+navigationUiKtx = "2.9.0"
 osmdroidAndroid = "6.1.18"
 osmdroidMapsforge = "6.1.18"
 playServicesAuth = "21.3.0"
 playServicesBase = "18.7.0"
-playServicesMaps = "19.2.0"
+playServicesLocation = "21.3.0"
 swiperefreshlayout = "1.2.0-beta01"
 viewpager2 = "1.1.0"
+navigationFragment = "2.9.0"
+navigationUi = "2.9.0"
 
 [libraries]
+android-plugin-annotation-v9 = { module = "org.maplibre.gl:android-plugin-annotation-v9", version.ref = "androidPluginAnnotationV9" }
+android-sdk-v1020 = { module = "org.maplibre.gl:android-sdk", version.ref = "androidSdk" }
 cloudinary-android = { module = "com.cloudinary:cloudinary-android", version.ref = "cloudinaryAndroid" }
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "compiler" }
 constraintlayout-v220 = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayoutVersion" }
@@ -51,7 +60,10 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-maptiler-sdk = { module = "com.maptiler.sdk:maptiler-sdk", version.ref = "maptilerSdk" }
+mapbox-android-plugin-locationlayer = { module = "com.mapbox.mapboxsdk:mapbox-android-plugin-locationlayer", version.ref = "mapboxAndroidPluginLocationlayer" }
+maplibre-sdk = { module = "org.maplibre.gl:android-sdk", version.ref = "maplibreSdk" }
+maps-mobile = { module = "com.yandex.android:maps-mobile", version.ref = "mapsMobile" }
+maptiler-sdk-v660 = { module = "com.maptiler.sdk:maptiler-sdk", version.ref = "maptilerSdkVersion" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
@@ -67,7 +79,7 @@ osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "os
 osmdroid-mapsforge = { module = "org.osmdroid:osmdroid-mapsforge", version.ref = "osmdroidMapsforge" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 play-services-base = { module = "com.google.android.gms:play-services-base", version.ref = "playServicesBase" }
-play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
 ui = { group = "androidx.compose.ui", name = "ui" }
 ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
@@ -78,9 +90,10 @@ ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 material3 = { group = "androidx.compose.material3", name = "material3" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
 viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
+navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigationFragment" }
+navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "navigationUi" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-

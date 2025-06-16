@@ -12,7 +12,6 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.actnow.Adapters.EventAdapter;
 import com.example.actnow.Models.EventModel;
@@ -28,7 +27,6 @@ import java.util.List;
 public class EventFragment extends Fragment implements HomeFragment.SearchableFragment {
     private static final String TAG = "EventFragment";
     private RecyclerView rvPosts;
-    private SwipeRefreshLayout swipeRefreshLayout;
     private ProgressBar progressBar;
     private EventAdapter eventAdapter;
     private List<EventModel> events = new ArrayList<>();
@@ -60,9 +58,8 @@ public class EventFragment extends Fragment implements HomeFragment.SearchableFr
 
     private void initViews(View view) {
         rvPosts = view.findViewById(R.id.rvPosts);
-        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         progressBar = view.findViewById(R.id.progress_bar);
-        swipeRefreshLayout.setOnRefreshListener(this::loadEvents);
+        // Убрали swipeRefreshLayout
     }
 
     private void setupRecyclerView() {
@@ -86,7 +83,6 @@ public class EventFragment extends Fragment implements HomeFragment.SearchableFr
     }
 
     private void loadEvents() {
-        swipeRefreshLayout.setRefreshing(true);
         if (progressBar != null) {
             progressBar.setVisibility(View.VISIBLE);
         }
@@ -100,6 +96,7 @@ public class EventFragment extends Fragment implements HomeFragment.SearchableFr
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     allEvents.clear();
                     events.clear();
+                    Log.d(TAG, "Total documents fetched: " + queryDocumentSnapshots.size());
                     for (DocumentSnapshot snapshot : queryDocumentSnapshots) {
                         EventModel event = snapshot.toObject(EventModel.class);
                         if (event != null && event.getStartDate() != null) {
@@ -108,7 +105,7 @@ public class EventFragment extends Fragment implements HomeFragment.SearchableFr
                             Log.d(TAG, "Event " + event.getEventId() + " status from Firestore: " + status);
                             Log.d(TAG, "Event " + event.getEventId() + " endDate: " + event.getEndDate());
 
-                            // Определяем статус, если он не задан или нужно обновить
+                            // Определяем статус
                             if (status == null || "active".equals(status)) {
                                 if (event.getEndDate() != null && event.getEndDate().toDate().before(currentDate)) {
                                     status = "completed";
@@ -128,7 +125,6 @@ public class EventFragment extends Fragment implements HomeFragment.SearchableFr
                             }
                             event.setStatus(status);
 
-                            // Фильтруем: только "active" и с свободными местами
                             if ("active".equals(status) &&
                                     event.getCurrentParticipants() != null && event.getMaxParticipants() != null &&
                                     event.getCurrentParticipants() < event.getMaxParticipants()) {
@@ -143,22 +139,27 @@ public class EventFragment extends Fragment implements HomeFragment.SearchableFr
                         }
                     }
                     events.addAll(allEvents);
-                    eventAdapter.notifyDataSetChanged();
-                    swipeRefreshLayout.setRefreshing(false);
+                    eventAdapter.notifyDataSetChanged(); // Убедимся, что адаптер обновляется
                     if (progressBar != null) {
                         progressBar.setVisibility(View.GONE);
                     }
-                    if (events.isEmpty()) {
-                        Toast.makeText(getContext(), "Мероприятия не найдены", Toast.LENGTH_SHORT).show();
+                    if (isAdded() && getContext() != null) {
+                        if (events.isEmpty()) {
+                            Toast.makeText(getContext(), "Мероприятия не найдены", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Log.w(TAG, "Фрагмент не присоединён или контекст null, Toast не показан");
                     }
                 })
                 .addOnFailureListener(e -> {
-                    swipeRefreshLayout.setRefreshing(false);
                     if (progressBar != null) {
                         progressBar.setVisibility(View.GONE);
                     }
-                    Log.e(TAG, "Failed to load events", e);
-                    Toast.makeText(getContext(), "Ошибка загрузки мероприятий", Toast.LENGTH_SHORT).show();
+                    if (isAdded() && getContext() != null) {
+                        Toast.makeText(getContext(), "Ошибка загрузки мероприятий", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Log.e(TAG, "Ошибка загрузки мероприятий и контекст недоступен", e);
+                    }
                 });
     }
 
@@ -187,7 +188,6 @@ public class EventFragment extends Fragment implements HomeFragment.SearchableFr
                 }
             }
 
-            // Учитываем фильтр по статусу и местам даже при поиске
             if (matchesQuery && matchesFilters && "active".equals(event.getStatus()) &&
                     event.getCurrentParticipants() != null && event.getMaxParticipants() != null &&
                     event.getCurrentParticipants() < event.getMaxParticipants()) {
@@ -195,7 +195,6 @@ public class EventFragment extends Fragment implements HomeFragment.SearchableFr
             }
         }
 
-        // Сортировка по дате начала
         events.sort((e1, e2) -> e1.getStartDate().compareTo(e2.getStartDate()));
 
         eventAdapter.notifyDataSetChanged();

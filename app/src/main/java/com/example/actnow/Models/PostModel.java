@@ -40,7 +40,6 @@ public class PostModel {
         this.content = content;
     }
 
-    // Getters and Setters
     public String getPostId() { return postId; }
     public void setPostId(String postId) { this.postId = postId; }
 
@@ -80,7 +79,6 @@ public class PostModel {
     public Timestamp getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
 
-    // Helper methods
     public void addSearchKeyword(String keyword) {
         if (!searchKeywords.contains(keyword)) {
             searchKeywords.add(keyword);

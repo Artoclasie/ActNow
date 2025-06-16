@@ -2,8 +2,10 @@ package com.example.actnow.Fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioButton;
@@ -16,6 +18,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 
 import com.example.actnow.AuthorizActivity;
+import com.example.actnow.MainActivity;
 import com.example.actnow.R;
 import com.example.actnow.Fragments.BecomeOrganizerFragment;
 import com.example.actnow.Fragments.EditProfileFragment;
@@ -38,7 +41,32 @@ public class SettingsFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_settings, container, false);
+        View view = inflater.inflate(R.layout.fragment_settings, container, false);
+        // Установка слушателя касаний на корневую разметку
+        view.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                // Проверяем, произошло ли касание вне CardView
+                float x = event.getX();
+                float y = event.getY();
+                View cardView = view.findViewById(R.id.cv_settings); // Предполагаем, что CardView имеет ID
+                if (cardView != null) {
+                    int[] location = new int[2];
+                    cardView.getLocationOnScreen(location);
+                    int cardX = location[0];
+                    int cardY = location[1];
+                    int cardWidth = cardView.getWidth();
+                    int cardHeight = cardView.getHeight();
+
+                    if (x < cardX || x > cardX + cardWidth || y < cardY || y > cardY + cardHeight) {
+                        // Касание вне CardView, возвращаемся в ProfileFragment
+                        getParentFragmentManager().popBackStack();
+                        return true; // Потребляем событие
+                    }
+                }
+            }
+            return false; // Продолжаем обработку касаний внутри фрагмента
+        });
+        return view;
     }
 
     @Override
@@ -47,8 +75,33 @@ public class SettingsFragment extends Fragment {
         initializeViews(view);
         setupFirebase();
         setupPreferences();
-        checkUserAccountType(); // Проверяем тип аккаунта пользователя
+        checkUserAccountType();
         setupListeners();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (switchNotifications != null) {
+            outState.putBoolean("notifications_enabled", switchNotifications.isChecked());
+        }
+        if (rgTheme != null) {
+            outState.putInt("theme_checked_id", rgTheme.getCheckedRadioButtonId());
+        }
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        if (savedInstanceState != null) {
+            if (switchNotifications != null) {
+                switchNotifications.setChecked(savedInstanceState.getBoolean("notifications_enabled", false));
+            }
+            if (rgTheme != null && savedInstanceState.containsKey("theme_checked_id")) {
+                int checkedId = savedInstanceState.getInt("theme_checked_id");
+                rgTheme.check(checkedId);
+            }
+        }
     }
 
     private void initializeViews(View view) {
@@ -83,9 +136,7 @@ public class SettingsFragment extends Fragment {
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         String accountType = documentSnapshot.getString("accountType");
-                        // Лог для отладки
                         Log.d("SettingsFragment", "User accountType: " + (accountType != null ? accountType : "null"));
-                        // Скрываем кнопку для legal_entity и individual_organizer
                         if (accountType != null && (accountType.equalsIgnoreCase("legal_entity") || accountType.equalsIgnoreCase("individual_organizer"))) {
                             btnBecomeOrganizer.setVisibility(View.GONE);
                         } else {
@@ -96,13 +147,15 @@ public class SettingsFragment extends Fragment {
                 })
                 .addOnFailureListener(e -> {
                     Log.e("SettingsFragment", "Error checking user accountType: " + e.getMessage());
-                    btnBecomeOrganizer.setVisibility(View.VISIBLE); // Значение по умолчанию
+                    btnBecomeOrganizer.setVisibility(View.VISIBLE);
                     btnBecomeOrganizer.setText("Стать организатором");
                 });
     }
 
     private void setupThemeSettings() {
+        PreferencesManager preferencesManager = new PreferencesManager(requireContext());
         int currentTheme = preferencesManager.getThemeMode();
+
         switch (currentTheme) {
             case AppCompatDelegate.MODE_NIGHT_NO:
                 rbLight.setChecked(true);
@@ -111,7 +164,12 @@ public class SettingsFragment extends Fragment {
                 rbDark.setChecked(true);
                 break;
             default:
-                rbLight.setChecked(true); // Значение по умолчанию
+                currentTheme = AppCompatDelegate.getDefaultNightMode();
+                if (currentTheme == AppCompatDelegate.MODE_NIGHT_NO) {
+                    rbLight.setChecked(true);
+                } else {
+                    rbDark.setChecked(true);
+                }
                 break;
         }
 
@@ -123,8 +181,16 @@ public class SettingsFragment extends Fragment {
                 mode = AppCompatDelegate.MODE_NIGHT_YES;
             }
             preferencesManager.setThemeMode(mode);
-            AppCompatDelegate.setDefaultNightMode(mode);
-            requireActivity().recreate(); // Перезапуск активности для применения темы
+
+            // Обновляем тему в Firestore и применяем через MainActivity
+            if (currentUserId != null && isAdded() && !requireActivity().isFinishing() && !requireActivity().isDestroyed()) {
+                ((MainActivity) requireActivity()).toggleTheme(); // Вызываем метод активности
+            } else {
+                AppCompatDelegate.setDefaultNightMode(mode); // Fallback для неавторизованных
+                if (isAdded() && !requireActivity().isFinishing() && !requireActivity().isDestroyed()) {
+                    new Handler().postDelayed(() -> requireActivity().recreate(), 500);
+                }
+            }
         });
     }
 
@@ -163,7 +229,7 @@ public class SettingsFragment extends Fragment {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
 
-        db.collection("users").document(user.getUid())
+        db.collection("Profiles").document(user.getUid())
                 .delete()
                 .addOnSuccessListener(aVoid ->
                         user.delete()

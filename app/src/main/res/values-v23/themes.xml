@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Theme.ActNow" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
+    </style>
+
+    <style name="ActNow_Light" parent="Base.ActNow_Light">
+        <!-- Transparent system bars for edge-to-edge. -->
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
+    </style>
+
+    <style name="LongButtonStyle" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:backgroundTint">@color/button</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">@font/barkentina</item>
+        <item name="android:layout_margin">0dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+    <style name="ShortButtonStyle" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:backgroundTint">@color/button</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">@font/barkentina</item>
+        <item name="android:layout_margin">0dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+    <style name="CustomChipStyle" parent="Widget.MaterialComponents.Chip.Choice">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="android:fontFamily">@font/barkentina</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@color/back</item>
+        <item name="chipBackgroundColor">@color/back</item>
+        <item name="chipStrokeColor">@color/button</item>
+        <item name="chipStrokeWidth">2dp</item>
+        <item name="chipCornerRadius">0dp</item>
+    </style>
+</resources>

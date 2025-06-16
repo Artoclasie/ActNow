@@ -51,7 +51,7 @@ public class AnotherProfileActivity extends AppCompatActivity {
                 }
             }
         } else {
-            // Логируем ошибку, если userId не был передан
+
             Log.e("AnotherProfileActivity", "userId is null or empty");
         }
     }
@@ -60,10 +60,8 @@ public class AnotherProfileActivity extends AppCompatActivity {
     public void onBackPressed() {
         boolean fromChatsFragment = getIntent().getBooleanExtra("fromChatsFragment", false);
         if (fromChatsFragment) {
-            // Если переход был из ChatsFragment, завершаем активность
             finish();
         } else {
-            // Иначе обрабатываем BackStack
             if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
                 getSupportFragmentManager().popBackStack();
             } else {

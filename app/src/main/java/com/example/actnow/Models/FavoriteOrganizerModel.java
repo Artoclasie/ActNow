@@ -21,7 +21,6 @@ public class FavoriteOrganizerModel {
         this.organizerId = organizerId;
     }
 
-    // Getters and Setters
     public String getFavoriteId() { return favoriteId; }
     public void setFavoriteId(String favoriteId) { this.favoriteId = favoriteId; }
 

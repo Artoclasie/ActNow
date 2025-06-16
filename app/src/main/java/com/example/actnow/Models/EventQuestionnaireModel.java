@@ -25,7 +25,6 @@ public class EventQuestionnaireModel {
         this.eventId = eventId;
     }
 
-    // Getters and Setters
     public String getQuestionnaireId() { return questionnaireId; }
     public void setQuestionnaireId(String questionnaireId) { this.questionnaireId = questionnaireId; }
 
@@ -41,7 +40,6 @@ public class EventQuestionnaireModel {
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
 
-    // Helper methods
     public void addQuestion(String questionId, String text, String type, List<String> options, boolean isRequired) {
         Map<String, Object> question = new HashMap<>();
         question.put("questionId", questionId);

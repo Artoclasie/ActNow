@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".AuthorizActivity"
-    android:background="@color/back">
+    android:background="@color/white">
 
     <TextView
         android:id="@+id/welcome"
@@ -15,7 +15,7 @@
         android:fontFamily="@font/barkentina"
         android:text="Добро пожаловать!"
         android:textStyle="bold"
-        android:textColor="@color/text"
+        android:textColor="@color/black"
         android:textSize="27sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -29,7 +29,7 @@
         android:layout_marginTop="80dp"
         android:fontFamily="@font/barkentina"
         android:text="Мы счастливы видеть вас!"
-        android:textColor="@color/text"
+        android:textColor="@color/black"
         android:textSize="24sp"
         android:scrollHorizontally="true"
         android:singleLine="true"
@@ -51,8 +51,8 @@
         android:importantForAutofill="yes"
         android:scrollHorizontally="true"
         android:singleLine="true"
-        android:textColor="@color/text"
-        android:textColorHint="@color/text"
+        android:textColor="@color/black"
+        android:textColorHint="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/happytext" />
@@ -66,8 +66,8 @@
         android:backgroundTint="@color/button"
         android:fontFamily="@font/barkentina"
         android:hint="Пароль"
-        android:textColor="@color/text"
-        android:textColorHint="@color/text"
+        android:textColor="@color/black"
+        android:textColorHint="@color/black"
         android:scrollHorizontally="true"
         android:singleLine="true"
         app:layout_constraintEnd_toEndOf="parent"
@@ -95,7 +95,7 @@
         android:layout_marginTop="30dp"
         android:fontFamily="@font/barkentina"
         android:text="Перейти на регистрацию"
-        android:textColor="@color/text"
+        android:textColor="@color/black"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

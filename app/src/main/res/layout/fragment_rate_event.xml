@@ -4,23 +4,40 @@
     android:layout_height="match_parent"
     android:background="@color/back"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/tv_title"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Мероприятие окончено!"
+        android:textSize="24sp"
+        android:textColor="@color/previwtext"
+        android:fontFamily="@font/barkentina"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="10dp" />
 
     <TextView
         android:id="@+id/tv_event_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Мероприятие окончено! [Название]"
-        android:textSize="20sp"
+        android:text="[Название]"
+        android:textSize="18sp"
+        android:textColor="@color/text"
+        android:fontFamily="@font/barkentina"
         android:textStyle="bold"
         android:gravity="center"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="10dp" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Пожалуйста, оставьте отзыв"
         android:textSize="16sp"
+        android:textColor="@color/text"
+        android:fontFamily="@font/barkentina"
         android:gravity="center"
         android:layout_marginBottom="16dp" />
 
@@ -40,13 +57,13 @@
         android:gravity="top"
         android:inputType="textMultiLine"
         android:minLines="3"
+        android:fontFamily="@font/barkentina"
         android:maxLines="5"
         android:layout_marginBottom="16dp" />
 
     <Button
         android:id="@+id/btn_submit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/ShortButtonStyle"
         android:text="Отправить"
         android:layout_gravity="center" />
 

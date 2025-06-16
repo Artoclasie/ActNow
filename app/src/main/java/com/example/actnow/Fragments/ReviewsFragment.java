@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,9 +19,11 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.example.actnow.Adapters.ReviewAdapter;
 import com.example.actnow.Models.ReviewModel;
 import com.example.actnow.R;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
@@ -32,22 +35,27 @@ public class ReviewsFragment extends Fragment {
     private RecyclerView rvReviews;
     private SwipeRefreshLayout swipeRefreshLayout;
     private TextView tvEmptyState;
+    private TextView tvTitle;
     private ReviewAdapter reviewAdapter;
     private List<ReviewModel> reviewList = new ArrayList<>();
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-    private String targetUserId; // ID пользователя, чьи отзывы загружаем
+    private String targetUserId;
     private String accountType;
     private Button btnLeft, btnRight;
+    private View underlineIndicator;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
         if (getArguments() != null) {
-            targetUserId = getArguments().getString("userId", mAuth.getCurrentUser().getUid());
+            targetUserId = getArguments().getString("userId", mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "");
         } else {
-            targetUserId = mAuth.getCurrentUser().getUid();
+            targetUserId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : "";
         }
+        Log.d(TAG, "onCreate: targetUserId=" + targetUserId);
     }
 
     @Override
@@ -59,25 +67,26 @@ public class ReviewsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mAuth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
-
         rvReviews = view.findViewById(R.id.rv_reviews);
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
         tvEmptyState = view.findViewById(R.id.tv_empty_state);
+        tvTitle = view.findViewById(R.id.tv_title);
         btnLeft = view.findViewById(R.id.btn_left);
         btnRight = view.findViewById(R.id.btn_right);
+        underlineIndicator = view.findViewById(R.id.underline_indicator);
 
-        if (rvReviews == null || swipeRefreshLayout == null || tvEmptyState == null || btnLeft == null || btnRight == null) {
+        if (rvReviews == null || swipeRefreshLayout == null || tvEmptyState == null || tvTitle == null || btnLeft == null || btnRight == null || underlineIndicator == null) {
             Log.e(TAG, "One or more views are null!");
             return;
         }
+
+        tvTitle.setText("Отзывы");
 
         setupRecyclerView();
         setupSwipeRefresh();
         setupButtons();
         loadUserAccountType();
-        loadReviews(true); // Загружаем оставленные по умолчанию
+        loadReviews(true);
     }
 
     private void setupRecyclerView() {
@@ -97,25 +106,41 @@ public class ReviewsFragment extends Fragment {
     }
 
     private void setupButtons() {
-        btnLeft.setText("Оставленные");
-        btnRight.setText("Поставленные");
+        btnLeft.setText(getString(R.string.our_reviews));
+        btnRight.setText(getString(R.string.reviews_about_us));
         btnLeft.setOnClickListener(v -> {
             btnLeft.setSelected(true);
             btnRight.setSelected(false);
+            underlineIndicator.setVisibility(View.VISIBLE);
+            ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) underlineIndicator.getLayoutParams();
+            params.startToStart = R.id.btn_left;
+            params.endToEnd = R.id.btn_left;
+            underlineIndicator.setLayoutParams(params);
             reviewList.clear();
             loadReviews(true);
         });
         btnRight.setOnClickListener(v -> {
             btnRight.setSelected(true);
             btnLeft.setSelected(false);
+            underlineIndicator.setVisibility(View.VISIBLE);
+            ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) underlineIndicator.getLayoutParams();
+            params.startToStart = R.id.btn_right;
+            params.endToEnd = R.id.btn_right;
+            underlineIndicator.setLayoutParams(params);
             reviewList.clear();
             loadReviews(false);
         });
+
         btnLeft.setSelected(true);
+        underlineIndicator.setVisibility(View.VISIBLE);
+        ConstraintLayout.LayoutParams initialParams = (ConstraintLayout.LayoutParams) underlineIndicator.getLayoutParams();
+        initialParams.startToStart = R.id.btn_left;
+        initialParams.endToEnd = R.id.btn_left;
+        underlineIndicator.setLayoutParams(initialParams);
     }
 
     private void loadUserAccountType() {
-        db.collection("UserProfiles").document(targetUserId) // Используем targetUserId
+        db.collection("Profiles").document(targetUserId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -124,55 +149,69 @@ public class ReviewsFragment extends Fragment {
                         if ("individual_organizer".equals(accountType)) {
                             btnLeft.setVisibility(View.VISIBLE);
                             btnRight.setVisibility(View.VISIBLE);
+                            underlineIndicator.setVisibility(View.VISIBLE);
                         } else {
                             btnLeft.setVisibility(View.GONE);
                             btnRight.setVisibility(View.GONE);
+                            underlineIndicator.setVisibility(View.GONE);
                         }
-                    }
-                })
-                .addOnFailureListener(e -> Log.e(TAG, "Error loading account type for " + targetUserId, e));
-    }
-
-    private void loadReviews(boolean isLeft) {
-        if (!isAdded()) {
-            Log.e(TAG, "Fragment not added!");
-            return;
-        }
-
-        swipeRefreshLayout.setRefreshing(true);
-        Log.d(TAG, "Loading reviews for targetUserId: " + targetUserId + ", isLeft: " + isLeft);
-
-        db.collection("Reviews")
-                .whereEqualTo(isLeft ? "reviewerId" : "userId", targetUserId) // Фильтр по целевому пользователю
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (isAdded()) {
-                        swipeRefreshLayout.setRefreshing(false);
-                        Log.d(TAG, "Query completed, success: " + task.isSuccessful());
-
-                        if (task.isSuccessful()) {
-                            reviewList.clear();
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                ReviewModel review = document.toObject(ReviewModel.class);
-                                review.setId(document.getId());
-                                reviewList.add(review);
-                                Log.d(TAG, "Loaded review: ID=" + review.getId() + ", EventId=" + review.getEventId() + ", Rating=" + review.getRating());
-                            }
-                            reviewAdapter.notifyDataSetChanged();
-                            updateVisibility();
-                        } else {
-                            Log.e(TAG, "Error loading reviews", task.getException());
-                            tvEmptyState.setText("Ошибка загрузки отзывов: " + task.getException().getMessage());
-                            tvEmptyState.setVisibility(View.VISIBLE);
-                            rvReviews.setVisibility(View.GONE);
-                        }
+                    } else {
+                        Log.w(TAG, "UserProfile not found for " + targetUserId);
+                        btnLeft.setVisibility(View.GONE);
+                        btnRight.setVisibility(View.GONE);
+                        underlineIndicator.setVisibility(View.GONE);
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failure loading reviews", e);
-                    if (isAdded()) {
-                        swipeRefreshLayout.setRefreshing(false);
-                        tvEmptyState.setText("Ошибка загрузки отзывов: " + e.getMessage());
+                    Log.e(TAG, "Error loading account type for " + targetUserId, e);
+                    btnLeft.setVisibility(View.GONE);
+                    btnRight.setVisibility(View.GONE);
+                    underlineIndicator.setVisibility(View.GONE);
+                });
+    }
+
+    private void loadReviews(boolean isLeft) {
+        Log.d(TAG, "Starting loadReviews, isLeft: " + isLeft + ", targetUserId: " + targetUserId);
+        swipeRefreshLayout.setRefreshing(true);
+        db.collection("Reviews")
+                .whereEqualTo(isLeft ? "reviewerId" : "userId", targetUserId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (!isAdded()) return;
+                    swipeRefreshLayout.setRefreshing(false);
+                    if (task.isSuccessful()) {
+                        reviewList.clear();
+                        List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            ReviewModel review = document.toObject(ReviewModel.class);
+                            review.setId(document.getId());
+                            Task<DocumentSnapshot> eventTask = db.collection("events").document(review.getEventId())
+                                    .get()
+                                    .addOnSuccessListener(eventDoc -> {
+                                        if (eventDoc.exists()) {
+                                            review.setEventTitle(eventDoc.getString("title"));
+                                        } else {
+                                            review.setEventTitle("Мероприятие не найдено");
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        review.setEventTitle("Ошибка загрузки мероприятия");
+                                    });
+                            tasks.add(eventTask);
+
+                            reviewList.add(review);
+                            Log.d(TAG, "Retrieved review: eventId=" + review.getEventId() + ", reviewId=" + review.getId());
+                        }
+                        Log.d(TAG, "Total reviews queried: " + tasks.size());
+                        Tasks.whenAll(tasks).addOnCompleteListener(t -> {
+                            if (!isAdded()) return;
+                            Log.d(TAG, "Total reviews loaded: " + reviewList.size());
+                            reviewAdapter.notifyDataSetChanged();
+                            updateVisibility();
+                        });
+                    } else {
+                        Log.e(TAG, "Failed to load reviews", task.getException());
+                        tvEmptyState.setText("Ошибка загрузки отзывов: " + task.getException().getMessage());
                         tvEmptyState.setVisibility(View.VISIBLE);
                         rvReviews.setVisibility(View.GONE);
                     }
@@ -193,7 +232,6 @@ public class ReviewsFragment extends Fragment {
         });
     }
 
-    // Метод для вызова извне (например, из профиля)
     public static ReviewsFragment newInstance(String userId) {
         ReviewsFragment fragment = new ReviewsFragment();
         Bundle args = new Bundle();

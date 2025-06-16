@@ -24,6 +24,8 @@ import com.bumptech.glide.Glide;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.actnow.R;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -32,9 +34,11 @@ import com.google.firebase.Timestamp;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -51,7 +55,10 @@ public class EditProfileFragment extends Fragment {
     private ImageView btnChangeBackground;
     private EditText etUsername, etBio, etLocation;
     private TextView tvBirthDateValue;
+    private ChipGroup chipGroupTags;
+    private TextView tvTagsLabel;
     private Timestamp selectedBirthDate;
+    private View rootView;
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -76,11 +83,11 @@ public class EditProfileFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_edit_profile, container, false);
-        initViews(view);
+        rootView = inflater.inflate(R.layout.fragment_edit_profile, container, false);
+        initViews(rootView);
         loadUserData();
         setListeners();
-        return view;
+        return rootView;
     }
 
     private void initViews(View view) {
@@ -94,6 +101,8 @@ public class EditProfileFragment extends Fragment {
         etBio = view.findViewById(R.id.etBio);
         etLocation = view.findViewById(R.id.etLocation);
         tvBirthDateValue = view.findViewById(R.id.tvBirthDateValue);
+        chipGroupTags = view.findViewById(R.id.chip_group_tags);
+        tvTagsLabel = view.findViewById(R.id.tv_tags_label);
     }
 
     private void setListeners() {
@@ -102,6 +111,9 @@ public class EditProfileFragment extends Fragment {
         btnChangeAvatar.setOnClickListener(v -> openImagePicker(PICK_AVATAR_REQUEST));
         btnChangeBackground.setOnClickListener(v -> openImagePicker(PICK_BACKGROUND_REQUEST));
         tvBirthDateValue.setOnClickListener(v -> showDatePicker());
+        chipGroupTags.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            // Optional: Add validation or UI feedback if needed
+        });
     }
 
     private void loadUserData() {
@@ -116,6 +128,9 @@ public class EditProfileFragment extends Fragment {
                 String avatarUrl = documentSnapshot.getString("avatarUrl");
                 String backgroundImageUrl = documentSnapshot.getString("backgroundImageUrl");
                 Timestamp birthDate = documentSnapshot.getTimestamp("birthDate");
+                @SuppressWarnings("unchecked")
+                List<String> interests = (List<String>) documentSnapshot.get("interests");
+                String accountType = documentSnapshot.getString("accountType");
 
                 etUsername.setText(username != null ? username : "");
                 etBio.setText(bio != null ? bio : "");
@@ -128,20 +143,24 @@ public class EditProfileFragment extends Fragment {
                 }
 
                 if (avatarUrl != null && !avatarUrl.isEmpty()) {
-                    Glide.with(this)
-                            .load(avatarUrl)
-                            .placeholder(R.drawable.default_profile_picture)
-                            .into(profileImage);
+                    Glide.with(this).load(avatarUrl).placeholder(R.drawable.default_profile_picture).into(profileImage);
                 }
 
                 if (backgroundImageUrl != null && !backgroundImageUrl.isEmpty()) {
-                    Glide.with(this)
-                            .load(backgroundImageUrl)
-                            .placeholder(R.drawable.ava)
-                            .into(profileBackImage);
+                    Glide.with(this).load(backgroundImageUrl).placeholder(R.drawable.ava).into(profileBackImage);
                 }
-            } else {
-                Toast.makeText(getContext(), "Профиль не найден", Toast.LENGTH_SHORT).show();
+
+                if ("legal_entity".equals(accountType)) {
+                    tvTagsLabel.setVisibility(View.GONE);
+                    chipGroupTags.setVisibility(View.GONE);
+                } else if (interests != null) {
+                    for (int i = 0; i < chipGroupTags.getChildCount(); i++) {
+                        Chip chip = (Chip) chipGroupTags.getChildAt(i);
+                        if (chip != null && interests.contains(chip.getText().toString())) {
+                            chip.setChecked(true);
+                        }
+                    }
+                }
             }
         }).addOnFailureListener(e -> {
             Log.e(TAG, "Error loading user data", e);
@@ -171,7 +190,7 @@ public class EditProfileFragment extends Fragment {
                     tvBirthDateValue.setText(formatTimestamp(selectedBirthDate));
                 },
                 year, month, day);
-        datePickerDialog.getDatePicker().setMaxDate(new Date().getTime()); // Запрет будущих дат
+        datePickerDialog.getDatePicker().setMaxDate(new Date().getTime());
         datePickerDialog.show();
     }
 
@@ -238,7 +257,6 @@ public class EditProfileFragment extends Fragment {
                 String avatarUrl = null;
                 String backgroundUrl = null;
 
-                // Загрузка аватара, если выбран
                 if (selectedAvatarBitmap != null) {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     selectedAvatarBitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
@@ -249,7 +267,6 @@ public class EditProfileFragment extends Fragment {
                     }
                 }
 
-                // Загрузка фона, если выбран
                 if (selectedBackgroundBitmap != null) {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     selectedBackgroundBitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
@@ -279,16 +296,23 @@ public class EditProfileFragment extends Fragment {
         updates.put("username", username);
         updates.put("bio", bio);
         updates.put("city", city);
-        if (avatarUrl != null) {
-            updates.put("avatarUrl", avatarUrl);
-        }
-        if (backgroundUrl != null) {
-            updates.put("backgroundImageUrl", backgroundUrl);
-        }
-        if (selectedBirthDate != null) {
-            updates.put("birthDate", selectedBirthDate);
-        }
+        if (avatarUrl != null) updates.put("avatarUrl", avatarUrl);
+        if (backgroundUrl != null) updates.put("backgroundImageUrl", backgroundUrl);
+        if (selectedBirthDate != null) updates.put("birthDate", selectedBirthDate);
         updates.put("updatedAt", Timestamp.now());
+
+        List<String> selectedInterests = new ArrayList<>();
+        for (int i = 0; i < chipGroupTags.getChildCount(); i++) {
+            Chip chip = (Chip) chipGroupTags.getChildAt(i);
+            if (chip != null && chip.isChecked()) {
+                selectedInterests.add(chip.getText().toString());
+            }
+        }
+        if (!selectedInterests.isEmpty()) {
+            updates.put("interests", selectedInterests);
+        } else {
+            updates.put("interests", null);
+        }
 
         userRef.update(updates)
                 .addOnSuccessListener(aVoid -> {

@@ -1,23 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="100dp"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginEnd="8dp"
-    android:gravity="center_horizontal"
-    android:orientation="vertical">
+    android:background="@color/back"
+    android:padding="8dp">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_marginBottom="8dp"
+        android:id="@+id/cv_organizer_photo"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         app:cardCornerRadius="30dp"
-        app:cardElevation="4dp">
+        app:cardElevation="4dp"
+        android:layout_marginStart="5dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:id="@+id/iv_participant_photo"
+            android:id="@+id/iv_organizer_photo"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
@@ -26,13 +28,31 @@
     </androidx.cardview.widget.CardView>
 
     <TextView
-        android:id="@+id/tv_participant_name"
-        android:layout_width="match_parent"
+        android:id="@+id/tv_volunteer_name"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textAlignment="center"
-        android:textSize="14sp"
-        tools:text="Мария Петрова" />
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="0dp"
+        android:textSize="18sp"
+        android:fontFamily="@font/barkentina"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/cv_organizer_photo"
+        app:layout_constraintTop_toTopOf="@id/cv_organizer_photo"
+        tools:text="Имя" />
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/tv_volunteer_city"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
+        android:textColor="@color/text"
+        android:textSize="16sp"
+        android:fontFamily="@font/barkentina"
+        app:layout_constraintEnd_toEndOf="@id/tv_volunteer_name"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@id/tv_volunteer_name"
+        app:layout_constraintTop_toBottomOf="@id/tv_volunteer_name"
+        tools:text="Организатор" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    android:background="@color/post"
+    android:background="@color/button"
     android:elevation="4dp">
 
     <!-- Основное изображение события -->
@@ -66,6 +66,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="2"
+            android:fontFamily="@font/barkentina"
             android:text="Stop Being Misunderstood! Master English Pronunciation Speak with Confidence"
             android:textColor="@color/text"
             android:textSize="18sp"
@@ -77,6 +78,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:fontFamily="@font/barkentina"
             android:text="ВТ, АПР. 15 • 21:00 (EUROPE/MINSK) • Online event"
             android:textColor="@color/text"
             android:textSize="13sp"/>
@@ -86,6 +88,7 @@
             android:id="@+id/tv_location"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:fontFamily="@font/barkentina"
             android:layout_marginTop="4dp"
             android:text="Местоположение не указано"
             android:textColor="@color/text"
@@ -99,18 +102,16 @@
             android:layout_marginTop="8dp">
 
             <com.google.android.material.chip.Chip
-                style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:text="Executive Coaching"
-                android:textSize="12sp"/>
+                android:layout_height="wrap_content"
+                style="ForCustomChipStyle"
+                android:text="Executive Coaching" />
 
             <com.google.android.material.chip.Chip
-                style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
-                android:layout_height="32dp"
+                android:layout_height="wrap_content"
                 android:text="Communication Skills"
-                android:textSize="12sp"/>
+                style="ForCustomChipStyle"/>
 
         </com.google.android.material.chip.ChipGroup>
 

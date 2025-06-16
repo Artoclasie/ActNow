@@ -9,16 +9,17 @@
     <TextView
         android:id="@+id/tv_header"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:text="Записаны"
+        android:layout_height="55dp"
         android:background="@color/button"
+        android:fontFamily="@font/barkentina"
+        android:padding="10dp"
+        android:text="   Записаны"
         android:textColor="@color/text"
-        android:textSize="24sp"
+        android:textSize="22sp"
         android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view_events"

@@ -1,15 +1,19 @@
 package com.example.actnow.Fragments;
 
+import android.content.Intent;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.cardview.widget.CardView;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -21,12 +25,14 @@ import com.example.actnow.Models.ChatModel;
 import com.example.actnow.Models.MessageModel;
 import com.example.actnow.Models.UserProfile;
 import com.example.actnow.R;
+import com.example.actnow.AnotherProfileActivity; // Import the new activity
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.Timestamp;
 
@@ -36,11 +42,13 @@ import java.util.List;
 import java.util.Map;
 
 public class ChatFragment extends Fragment {
+    private static final String TAG = "ChatFragment";
     private String userId;
     private String currentUserId;
     private String chatId;
     private TextView tvUsername;
     private ImageView ivAvatar;
+    private CardView cvAvatar;
     private ImageView ivBackArrow;
     private RecyclerView recyclerView;
     private EditText etMessage;
@@ -50,9 +58,11 @@ public class ChatFragment extends Fragment {
     private List<MessageModel> messages;
     private ChatMessageAdapter messageAdapter;
     private NestedScrollView nestedScrollView;
+    private View rootView;
+    private ViewTreeObserver.OnGlobalLayoutListener keyboardLayoutListener;
+    private ListenerRegistration messagesListener;
 
     public ChatFragment() {
-        // Required empty public constructor
     }
 
     public static ChatFragment newInstance(String userId) {
@@ -71,32 +81,17 @@ public class ChatFragment extends Fragment {
         if (getArguments() != null) {
             userId = getArguments().getString("uid");
             if (userId == null || userId.isEmpty()) {
-                Log.e("ChatFragment", "User ID is null or empty");
-                Toast.makeText(getContext(), "Error: User ID is missing", Toast.LENGTH_SHORT).show();
-                if (getActivity() != null) {
-                    getActivity().onBackPressed();
-                }
+                showErrorAndBack("Error: User ID is missing");
                 return;
             } else if (currentUser == null) {
-                Log.e("ChatFragment", "User not authenticated");
-                Toast.makeText(getContext(), "Ошибка: Пользователь не авторизован", Toast.LENGTH_SHORT).show();
-                if (getActivity() != null) {
-                    getActivity().onBackPressed();
-                }
+                showErrorAndBack("Ошибка: Пользователь не авторизован");
                 return;
             } else if (userId.equals(currentUser.getUid())) {
-                Log.e("ChatFragment", "Self-chat detected with userId: " + userId);
-                Toast.makeText(getContext(), "Ошибка: Невозможно начать чат с самим собой", Toast.LENGTH_SHORT).show();
-                if (getActivity() != null) {
-                    getActivity().onBackPressed();
-                }
+                showErrorAndBack("Ошибка: Невозможно начать чат с самим собой");
                 return;
             }
         } else {
-            Log.e("ChatFragment", "No arguments passed");
-            if (getActivity() != null) {
-                getActivity().onBackPressed();
-            }
+            showErrorAndBack("No arguments passed");
             return;
         }
 
@@ -106,57 +101,78 @@ public class ChatFragment extends Fragment {
         messages = new ArrayList<>();
     }
 
+    private void showErrorAndBack(String message) {
+        Log.e(TAG, message);
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        if (getActivity() != null) {
+            getActivity().onBackPressed();
+        }
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_chat, container, false);
+        rootView = inflater.inflate(R.layout.fragment_chat, container, false);
+        initViews();
+        setupRecyclerView();
+        setupKeyboardBehavior();
+        setupClickListeners();
+        loadUserData();
+        loadMessages();
+        return rootView;
+    }
 
-        tvUsername = view.findViewById(R.id.tv_chat_username);
-        ivAvatar = view.findViewById(R.id.iv_chat_avatar);
-        ivBackArrow = view.findViewById(R.id.iv_back_arrow);
-        recyclerView = view.findViewById(R.id.recyclerView_chat);
-        etMessage = view.findViewById(R.id.et_chat_message);
-        ivSendButton = view.findViewById(R.id.iv_send_button);
-        nestedScrollView = view.findViewById(R.id.nested_scroll_view);
+    private void initViews() {
+        tvUsername = rootView.findViewById(R.id.tv_chat_username);
+        cvAvatar = rootView.findViewById(R.id.cv_profile_image);
+        ivAvatar = rootView.findViewById(R.id.iv_chat_avatar);
+        ivBackArrow = rootView.findViewById(R.id.iv_back_arrow);
+        recyclerView = rootView.findViewById(R.id.recyclerView_chat);
+        etMessage = rootView.findViewById(R.id.et_chat_message);
+        ivSendButton = rootView.findViewById(R.id.iv_send_button);
+        nestedScrollView = rootView.findViewById(R.id.nested_scroll_view);
+    }
 
-        // Убедимся, что фрагмент растягивается на весь экран
-        view.setLayoutParams(new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        ));
-
-        // Отключаем ограничения контейнера
-        if (view.getParent() != null) {
-            ViewGroup parent = (ViewGroup) view.getParent();
-            parent.setClipChildren(false);
-            parent.setClipToPadding(false);
-        }
-
-        // Disable state restoration to prevent ClassCastException
-        recyclerView.setSaveEnabled(false);
-
-        // Настройка RecyclerView
+    private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         messageAdapter = new ChatMessageAdapter();
         recyclerView.setAdapter(messageAdapter);
+        recyclerView.setNestedScrollingEnabled(true);
+        recyclerView.setHasFixedSize(true);
+    }
 
-        // Загрузка данных пользователя
-        loadUserData();
+    private void setupKeyboardBehavior() {
+        keyboardLayoutListener = () -> {
+            Rect r = new Rect();
+            rootView.getWindowVisibleDisplayFrame(r);
+            int screenHeight = rootView.getRootView().getHeight();
+            int keypadHeight = screenHeight - r.bottom;
+            Log.d(TAG, "Keyboard height: " + keypadHeight + ", Screen height: " + screenHeight);
 
-        // Загрузка сообщений
-        loadMessages();
+            if (keypadHeight > screenHeight * 0.15) {
+                recyclerView.postDelayed(() -> {
+                    if (messages.size() > 0) {
+                        recyclerView.smoothScrollToPosition(messages.size() - 1);
+                        Log.d(TAG, "Keyboard shown, scrolled to position: " + (messages.size() - 1));
+                    }
+                    nestedScrollView.post(() -> {
+                        nestedScrollView.smoothScrollTo(0, etMessage.getBottom());
+                    });
+                }, 200);
+            }
+        };
+        rootView.getViewTreeObserver().addOnGlobalLayoutListener(keyboardLayoutListener);
+    }
 
-        // Add click listeners for navigating to AnotherProfileFragment
-        ivAvatar.setOnClickListener(v -> navigateToAnotherProfile());
+    private void setupClickListeners() {
+        cvAvatar.setOnClickListener(v -> navigateToAnotherProfile());
         tvUsername.setOnClickListener(v -> navigateToAnotherProfile());
 
-        // Add click listener for back arrow
         ivBackArrow.setOnClickListener(v -> {
             if (getActivity() != null) {
                 getActivity().onBackPressed();
             }
         });
 
-        // Add click listener for send button
         ivSendButton.setOnClickListener(v -> {
             String messageText = etMessage.getText().toString().trim();
             if (!messageText.isEmpty()) {
@@ -164,20 +180,15 @@ public class ChatFragment extends Fragment {
             }
         });
 
-        // Прокрутка к EditText при фокусе
         etMessage.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                Log.d("ChatFragment", "EditText focused, scrolling to it");
-                nestedScrollView.post(() -> {
-                    int[] location = new int[2];
-                    etMessage.getLocationOnScreen(location);
-                    int y = location[1];
-                    nestedScrollView.smoothScrollTo(0, y);
-                });
+            if (hasFocus && messages.size() > 0) {
+                recyclerView.postDelayed(() -> {
+                    recyclerView.smoothScrollToPosition(messages.size() - 1);
+                    nestedScrollView.smoothScrollTo(0, etMessage.getBottom());
+                    Log.d(TAG, "EditText focused, scrolled to position: " + (messages.size() - 1));
+                }, 200);
             }
         });
-
-        return view;
     }
 
     private void loadUserData() {
@@ -187,123 +198,112 @@ public class ChatFragment extends Fragment {
                     if (documentSnapshot.exists()) {
                         UserProfile user = documentSnapshot.toObject(UserProfile.class);
                         if (user != null) {
-                            tvUsername.setText(user.getUsername());
-                            String profileImage = user.getProfileImage();
-                            if (profileImage != null && !profileImage.isEmpty()) {
-                                Glide.with(this)
-                                        .load(profileImage)
-                                        .placeholder(R.drawable.default_profile_picture)
-                                        .error(R.drawable.default_profile_picture)
-                                        .circleCrop()
-                                        .into(ivAvatar);
-                            } else {
-                                ivAvatar.setImageResource(R.drawable.default_profile_picture);
-                            }
+                            updateUserInfo(user);
                         } else {
-                            Log.w("ChatFragment", "UserProfile is null for userId: " + userId);
-                            tvUsername.setText("Unknown User");
-                            ivAvatar.setImageResource(R.drawable.default_profile_picture);
+                            setDefaultUserInfo();
                         }
                     } else {
-                        Log.w("ChatFragment", "Profile not found for userId: " + userId);
-                        tvUsername.setText("Unknown User");
-                        ivAvatar.setImageResource(R.drawable.default_profile_picture);
+                        setDefaultUserInfo();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("ChatFragment", "Error loading user data: " + e.getMessage());
-                    Toast.makeText(getContext(), "Error loading user data", Toast.LENGTH_SHORT).show();
-                    tvUsername.setText("Unknown User");
-                    ivAvatar.setImageResource(R.drawable.default_profile_picture);
+                    Log.e(TAG, "Error loading user data", e);
+                    setDefaultUserInfo();
                 });
     }
 
+    private void updateUserInfo(UserProfile user) {
+        tvUsername.setText(user.getUsername());
+        String profileImage = user.getProfileImage();
+        if (profileImage != null && !profileImage.isEmpty()) {
+            Glide.with(this)
+                    .load(profileImage)
+                    .placeholder(R.drawable.default_profile_picture)
+                    .error(R.drawable.default_profile_picture)
+                    .circleCrop()
+                    .into(ivAvatar);
+        } else {
+            ivAvatar.setImageResource(R.drawable.default_profile_picture);
+        }
+    }
+
+    private void setDefaultUserInfo() {
+        tvUsername.setText("Unknown User");
+        ivAvatar.setImageResource(R.drawable.default_profile_picture);
+    }
+
     private void loadMessages() {
-        CollectionReference messagesRef = firebaseFirestore
-                .collection("Chats")
-                .document(chatId)
-                .collection("Messages");
-
-        Query query = messagesRef.orderBy("createdAt", Query.Direction.ASCENDING);
-
-        query.addSnapshotListener((snapshot, e) -> {
-            if (e != null) {
-                Log.w("ChatFragment", "Listen failed: " + e.getMessage(), e);
-                return;
-            }
-
-            if (snapshot != null) {
-                messages.clear();
-                for (DocumentSnapshot document : snapshot.getDocuments()) {
-                    MessageModel message = document.toObject(MessageModel.class);
-                    if (message != null) {
-                        messages.add(message);
+        messagesListener = firebaseFirestore.collection("Chats").document(chatId)
+                .collection("Messages")
+                .orderBy("createdAt", Query.Direction.ASCENDING)
+                .addSnapshotListener((snapshot, e) -> {
+                    if (e != null) {
+                        Log.w(TAG, "Listen failed: " + e.getMessage());
+                        Toast.makeText(getContext(), "Ошибка загрузки сообщений", Toast.LENGTH_SHORT).show();
+                        return;
                     }
-                }
-                Log.d("ChatFragment", "Loaded " + messages.size() + " messages");
-                messageAdapter.setMessages(messages);
-                recyclerView.setVisibility(View.VISIBLE);
-                // Прокручиваем к последнему сообщению
-                recyclerView.post(() -> {
-                    recyclerView.scrollToPosition(messages.size() - 1);
+
+                    if (snapshot != null && !snapshot.isEmpty()) {
+                        int previousSize = messages.size();
+                        messages.clear();
+                        for (DocumentSnapshot document : snapshot.getDocuments()) {
+                            MessageModel message = document.toObject(MessageModel.class);
+                            if (message != null) {
+                                messages.add(message);
+                            }
+                        }
+                        Log.d(TAG, "Loaded " + messages.size() + " messages, previous size: " + previousSize);
+                        messageAdapter.setMessages(messages);
+                        messageAdapter.notifyDataSetChanged();
+                        recyclerView.postDelayed(() -> {
+                            if (messages.size() > 0) {
+                                recyclerView.smoothScrollToPosition(messages.size() - 1);
+                                Log.d(TAG, "Scrolled to last message at position: " + (messages.size() - 1));
+                            }
+                        }, 200);
+                    } else {
+                        Log.d(TAG, "No messages found for chatId: " + chatId);
+                        messages.clear();
+                        messageAdapter.setMessages(messages);
+                        messageAdapter.notifyDataSetChanged();
+                    }
                 });
-            }
-        });
     }
 
     private void sendMessage() {
         String messageText = etMessage.getText().toString().trim();
-        if (messageText.isEmpty()) {
-            return;
-        }
-
-        CollectionReference messagesRef = firebaseFirestore
-                .collection("Chats")
-                .document(chatId)
-                .collection("Messages");
-
-        String messageId = messagesRef.document().getId();
+        if (messageText.isEmpty()) return;
 
         MessageModel message = new MessageModel();
-        message.setMessageId(messageId);
+        message.setMessageId(firebaseFirestore.collection("Chats").document(chatId)
+                .collection("Messages").document().getId());
         message.setChatId(chatId);
         message.setSenderId(currentUserId);
         message.setContent(messageText);
         message.setType("text");
         message.setCreatedAt(Timestamp.now());
 
-        // Initialize chat document if it doesn't exist
         DocumentReference chatRef = firebaseFirestore.collection("Chats").document(chatId);
         chatRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                if (!task.getResult().exists()) {
-                    ChatModel chat = new ChatModel(chatId, currentUserId, userId);
-                    chatRef.set(chat.toMap())
-                            .addOnFailureListener(e -> Log.e("ChatFragment", "Error initializing chat: " + e.getMessage()));
-                }
-            } else {
-                Log.e("ChatFragment", "Error checking chat existence: " + task.getException());
+            if (task.isSuccessful() && !task.getResult().exists()) {
+                chatRef.set(new ChatModel(chatId, currentUserId, userId).toMap());
             }
         });
 
-        messagesRef.document(messageId).set(message.toMap())
+        chatRef.collection("Messages").document(message.getMessageId())
+                .set(message.toMap())
                 .addOnSuccessListener(aVoid -> {
-                    updateChatMetadata(messageText);
                     etMessage.setText("");
-                    // Прокручиваем к последнему сообщению после отправки
-                    recyclerView.post(() -> {
-                        recyclerView.scrollToPosition(messages.size());
-                    });
+                    updateChatMetadata(messageText);
+                    Log.d(TAG, "Message sent: " + messageText);
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("ChatFragment", "Error sending message: " + e.getMessage());
-                    Toast.makeText(getContext(), "Error sending message", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error sending message: " + e.getMessage());
+                    Toast.makeText(getContext(), "Ошибка отправки сообщения", Toast.LENGTH_SHORT).show();
                 });
     }
 
     private void updateChatMetadata(String lastMessage) {
-        DocumentReference chatRef = firebaseFirestore.collection("Chats").document(chatId);
-
         Map<String, Object> updates = new HashMap<>();
         updates.put("lastMessage", lastMessage);
         updates.put("lastMessageTime", Timestamp.now());
@@ -313,23 +313,47 @@ public class ChatFragment extends Fragment {
         unreadCount.put(userId, 1);
         updates.put("unreadCount", unreadCount);
 
-        chatRef.set(updates, com.google.firebase.firestore.SetOptions.merge())
-                .addOnFailureListener(e -> {
-                    Log.e("ChatFragment", "Error updating chat metadata: " + e.getMessage());
-                });
+        firebaseFirestore.collection("Chats").document(chatId)
+                .set(updates, com.google.firebase.firestore.SetOptions.merge())
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Chat metadata updated"))
+                .addOnFailureListener(e -> Log.e(TAG, "Error updating chat metadata: " + e.getMessage()));
     }
 
     private void navigateToAnotherProfile() {
-        if (getActivity() != null && userId != null) {
-            AnotherProfileFragment fragment = AnotherProfileFragment.newInstance(userId);
-            getActivity().getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.fragment_container, fragment)
-                    .addToBackStack(null)
-                    .commit();
-        } else {
-            Log.e("ChatFragment", "Unable to navigate to AnotherProfileFragment: userId or activity is null");
-            Toast.makeText(getContext(), "Error navigating to profile", Toast.LENGTH_SHORT).show();
+        if (!isAdded() || userId == null || userId.isEmpty()) {
+            Log.e(TAG, "Navigation failed: Fragment not added or userId is null/empty, userId=" + userId);
+            Toast.makeText(requireContext(), "Ошибка: ID пользователя отсутствует", Toast.LENGTH_SHORT).show();
+            return;
         }
+        if (getActivity() == null) {
+            Log.e(TAG, "Navigation failed: Activity is null");
+            return;
+        }
+
+        Log.d(TAG, "Navigating to AnotherProfileActivity with userId: " + userId);
+        Intent intent = new Intent(getActivity(), AnotherProfileActivity.class);
+        intent.putExtra("uid", userId);
+        intent.putExtra("fromChatsFragment", false);
+        startActivity(intent);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (messagesListener != null) {
+            messagesListener.remove();
+            messagesListener = null;
+            Log.d(TAG, "Messages listener removed");
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (rootView != null && keyboardLayoutListener != null) {
+            rootView.getViewTreeObserver().removeOnGlobalLayoutListener(keyboardLayoutListener);
+        }
+        rootView = null;
+        Log.d(TAG, "View destroyed, cleaned up resources");
     }
 }

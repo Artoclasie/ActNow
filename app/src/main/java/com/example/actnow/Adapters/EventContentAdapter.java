@@ -58,13 +58,10 @@ public class EventContentAdapter extends RecyclerView.Adapter<EventContentAdapte
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         EventModel event = eventList.get(position);
 
-        // Установка заголовка
         holder.tvEventTitle.setText(event.getTitle() != null ? event.getTitle() : "Без названия");
 
-        // Количество участников
         holder.tvParticipants.setText(event.getCurrentParticipants() + " / " + event.getMaxParticipants() + " участников");
 
-        // Форматирование даты и места проведения
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, MMM d • HH:mm", Locale.getDefault());
         dateFormat.setTimeZone(TimeZone.getTimeZone("Europe/Minsk"));
         String eventDetails = dateFormat.format(event.getStartDate().toDate());
@@ -75,10 +72,8 @@ public class EventContentAdapter extends RecyclerView.Adapter<EventContentAdapte
         }
         holder.tvDateTime.setText(eventDetails + " (EUROPE/MINSK)");
 
-        // Местоположение
         holder.tvLocation.setText(address != null && !address.isEmpty() ? address : "Местоположение не указано");
 
-        // Теги
         holder.chipGroupCategories.removeAllViews();
         if (event.getTags() != null && !event.getTags().isEmpty()) {
             for (String tag : event.getTags()) {
@@ -94,7 +89,6 @@ public class EventContentAdapter extends RecyclerView.Adapter<EventContentAdapte
             holder.chipGroupCategories.addView(chip);
         }
 
-        // Загрузка изображения
         if (event.getCoverImage() != null && !event.getCoverImage().isEmpty()) {
             Glide.with(context)
                     .load(event.getCoverImage())
@@ -105,7 +99,6 @@ public class EventContentAdapter extends RecyclerView.Adapter<EventContentAdapte
             holder.imvEventContent.setImageResource(R.drawable.default_image);
         }
 
-        // Обработка клика
         holder.itemView.setOnClickListener(v -> openEventDetails(event));
     }
 
@@ -113,20 +106,16 @@ public class EventContentAdapter extends RecyclerView.Adapter<EventContentAdapte
         EventDetailFragment fragment = new EventDetailFragment();
         Bundle args = new Bundle();
 
-        // Основная информация
         args.putString("eventId", event.getEventId());
         args.putString("title", event.getTitle());
         args.putString("description", event.getDescription());
         args.putString("coverImage", event.getCoverImage());
 
-        // Место проведения (только адрес, без onlineLink)
         args.putString("address", event.getAddress());
 
-        // Даты
         args.putLong("startDate", event.getStartDate().toDate().getTime());
         args.putLong("endDate", event.getEndDate().toDate().getTime());
 
-        // Дополнительная информация
         args.putInt("maxParticipants", event.getMaxParticipants());
         args.putInt("currentParticipants", event.getCurrentParticipants());
 

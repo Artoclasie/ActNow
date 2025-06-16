@@ -3,13 +3,11 @@ package com.example.actnow.Adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.example.actnow.Models.MessageModel;
 import com.example.actnow.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -25,8 +23,6 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     private String currentUserId;
     private static final int VIEW_TYPE_SENT = 1;
     private static final int VIEW_TYPE_RECEIVED = 2;
-    private static final int VIEW_TYPE_SENT_IMAGE = 3;
-    private static final int VIEW_TYPE_RECEIVED_IMAGE = 4;
 
     public MessageAdapter() {
         this.messages = new ArrayList<>();
@@ -45,14 +41,6 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
             case VIEW_TYPE_RECEIVED:
                 view = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.item_message_received, parent, false);
-                break;
-            case VIEW_TYPE_SENT_IMAGE:
-                view = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.item_message_sent_image, parent, false);
-                break;
-            case VIEW_TYPE_RECEIVED_IMAGE:
-                view = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.item_message_received_image, parent, false);
                 break;
             default:
                 throw new IllegalArgumentException("Invalid view type");
@@ -74,13 +62,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     @Override
     public int getItemViewType(int position) {
         MessageModel message = messages.get(position);
-        boolean isSent = message.getSenderId().equals(currentUserId);
-
-        if ("image".equals(message.getType())) {
-            return isSent ? VIEW_TYPE_SENT_IMAGE : VIEW_TYPE_RECEIVED_IMAGE;
-        } else {
-            return isSent ? VIEW_TYPE_SENT : VIEW_TYPE_RECEIVED;
-        }
+        return message.getSenderId().equals(currentUserId) ? VIEW_TYPE_SENT : VIEW_TYPE_RECEIVED;
     }
 
     public void addMessage(MessageModel message) {
@@ -96,32 +78,16 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     static class MessageViewHolder extends RecyclerView.ViewHolder {
         private TextView tvMessage;
         private TextView tvTime;
-        private ImageView ivImage;
 
         public MessageViewHolder(@NonNull View itemView) {
             super(itemView);
             tvMessage = itemView.findViewById(R.id.tv_message);
             tvTime = itemView.findViewById(R.id.tv_time);
-            ivImage = itemView.findViewById(R.id.iv_image);
         }
 
         public void bind(MessageModel message) {
-            if ("image".equals(message.getType())) {
-                if (tvMessage != null) tvMessage.setVisibility(View.GONE);
-                if (ivImage != null) ivImage.setVisibility(View.VISIBLE);
-                if (message.getImages() != null && !message.getImages().isEmpty()) {
-                    Glide.with(itemView.getContext())
-                            .load(message.getImages().get(0))
-                            .placeholder(R.drawable.default_profile_picture)
-                            .error(R.drawable.default_profile_picture)
-                            .into(ivImage);
-                } else {
-                    ivImage.setImageResource(R.drawable.default_profile_picture);
-                }
-            } else {
-                if (tvMessage != null) tvMessage.setVisibility(View.VISIBLE);
-                if (ivImage != null) ivImage.setVisibility(View.GONE);
-                if (tvMessage != null) tvMessage.setText(message.getContent());
+            if (tvMessage != null) {
+                tvMessage.setText(message.getContent());
             }
 
             // Format the timestamp

@@ -9,15 +9,15 @@ import java.util.HashMap;
 
 public class ChatModel {
     private String chatId;
-    private List<String> participants; // Always exactly 2 users for 1:1
+    private List<String> participants;
     private String lastMessage;
     private Timestamp lastMessageTime;
-    private Map<String, Integer> unreadCount; // Map of userId to unread count
+    private Map<String, Integer> unreadCount;
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
     public ChatModel() {
-        this.participants = new ArrayList<>(2); // Initialize with capacity for 2
+        this.participants = new ArrayList<>(2);
         this.unreadCount = new HashMap<>();
         this.createdAt = Timestamp.now();
         this.updatedAt = Timestamp.now();

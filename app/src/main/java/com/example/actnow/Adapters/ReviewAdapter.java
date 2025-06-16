@@ -30,32 +30,11 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
     private List<ReviewModel> reviewList;
     private Context context;
     private FragmentManager fragmentManager;
-    private FirebaseFirestore db;
-    private Map<String, String> eventTitles = new HashMap<>();
 
     public ReviewAdapter(List<ReviewModel> reviewList, Context context, FragmentManager fragmentManager) {
         this.reviewList = reviewList;
         this.context = context;
         this.fragmentManager = fragmentManager;
-        this.db = FirebaseFirestore.getInstance();
-        loadEventTitles();
-    }
-
-    private void loadEventTitles() {
-        for (ReviewModel review : reviewList) {
-            if (review.getEventId() != null && !eventTitles.containsKey(review.getEventId())) {
-                db.collection("events").document(review.getEventId())
-                        .get()
-                        .addOnSuccessListener(documentSnapshot -> {
-                            if (documentSnapshot.exists()) {
-                                String title = documentSnapshot.getString("title");
-                                eventTitles.put(review.getEventId(), title != null ? title : "Без названия");
-                                notifyDataSetChanged();
-                            }
-                        })
-                        .addOnFailureListener(e -> Log.e("ReviewAdapter", "Error loading event title", e));
-            }
-        }
     }
 
     @NonNull
@@ -69,8 +48,13 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ReviewModel review = reviewList.get(position);
-        holder.tvTitle.setText(eventTitles.getOrDefault(review.getEventId(), "Загрузка..."));
-        holder.tvDateTime.setText(formatDateTime(review.getCreatedAt()));
+        holder.tvEventTitle.setText(review.getEventTitle() != null ? review.getEventTitle() : "Не указано");
+
+        if (review.getCreatedAt() != null) {
+            holder.tvDateTime.setText(formatDateTime(review.getCreatedAt().toDate()));
+        } else {
+            holder.tvDateTime.setText("Дата не указана");
+        }
         setStarRating(holder, review.getRating());
         holder.tvBottomText.setText(review.getContent() != null ? review.getContent() : "Без текста");
 
@@ -92,12 +76,12 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvDateTime, tvBottomText;
+        TextView tvEventTitle, tvDateTime, tvBottomText;
         ImageView star1, star2, star3, star4, star5;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvTitle = itemView.findViewById(R.id.tv_title);
+            tvEventTitle = itemView.findViewById(R.id.tv_event_title);
             tvDateTime = itemView.findViewById(R.id.tv_date_time);
             tvBottomText = itemView.findViewById(R.id.tv_bottom_text);
             star1 = itemView.findViewById(R.id.star1);

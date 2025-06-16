@@ -67,7 +67,6 @@ public class PostReferenceModel implements Parcelable {
         return map;
     }
 
-    // Геттеры и сеттеры
     public String getDate() {
         return date;
     }

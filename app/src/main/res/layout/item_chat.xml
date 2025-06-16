@@ -10,8 +10,8 @@
     <!-- CardView with ImageView inside -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cvUserAvatar"
-        android:layout_width="55dp"
-        android:layout_height="55dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         app:cardCornerRadius="24dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -32,6 +32,7 @@
         android:layout_marginStart="12dp"
         android:layout_marginEnd="8dp"
         android:textSize="18sp"
+        android:fontFamily="@font/barkentina"
         android:textStyle="bold"
         android:textColor="@color/text"
         android:maxLines="1"
@@ -46,7 +47,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="14sp"
-        android:textColor="@color/text"
+        android:fontFamily="@font/barkentina"
+        android:textColor="@color/gray"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/tvUsername"
         tools:text="22:21" />
@@ -57,9 +59,10 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="0dp"
         android:textSize="16sp"
-        android:textColor="#808080"
+        android:textColor="@color/gray"
+        android:fontFamily="@font/barkentina"
         android:maxLines="1"
         android:ellipsize="end"
         app:layout_constraintStart_toEndOf="@id/cvUserAvatar"

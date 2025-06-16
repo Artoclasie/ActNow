@@ -5,14 +5,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@color/back"
     android:padding="8dp">
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cv_organizer_photo"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         app:cardCornerRadius="30dp"
         app:cardElevation="4dp"
+        android:layout_marginStart="5dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -30,8 +32,9 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="0dp"
         android:textSize="18sp"
+        android:fontFamily="@font/barkentina"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/cv_organizer_photo"
@@ -42,13 +45,14 @@
         android:id="@+id/tv_organizer_city"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
+        android:layout_marginTop="0dp"
         android:textColor="@color/text"
-        android:textSize="14sp"
+        android:textSize="16sp"
+        android:fontFamily="@font/barkentina"
         app:layout_constraintEnd_toEndOf="@id/tv_organizer_name"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@id/tv_organizer_name"
         app:layout_constraintTop_toBottomOf="@id/tv_organizer_name"
-        tools:text="Москва" />
+        tools:text="Организатор" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

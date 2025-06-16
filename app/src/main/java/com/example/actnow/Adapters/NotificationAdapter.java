@@ -46,14 +46,12 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         NotificationModel notification = notifications.get(position);
         holder.bind(notification);
 
-        // Обработка кликов
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onNotificationClick(notification);
             }
         });
 
-        // Обработка долгого нажатия
         holder.itemView.setOnLongClickListener(v -> {
             if (listener != null) {
                 listener.onNotificationLongClick(notification, position);
@@ -62,7 +60,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             return false;
         });
 
-        // Обработка удаления
         holder.btnDelete.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onDeleteClick(notification, position);

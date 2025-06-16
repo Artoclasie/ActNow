@@ -10,14 +10,15 @@ import java.util.Map;
 
 public class CommentModel {
     private String commentId;
-    private String eventId; // Changed from postId to eventId to match context
+    private String eventId;
     private String authorId;
     private String authorName;
-    private String profileImage; // Added to store profile image URL
+    private String profileImage;
     private String content;
     private List<String> imageUrls;
     private List<String> mentionedUsers;
     private Map<String, Boolean> likes;
+    private int likesCount;
     private int repliesCount;
     private boolean isHidden;
     private com.google.firebase.Timestamp createdAt;
@@ -27,6 +28,7 @@ public class CommentModel {
         this.imageUrls = new ArrayList<>();
         this.mentionedUsers = new ArrayList<>();
         this.likes = new HashMap<>();
+        this.likesCount = 0;
         this.repliesCount = 0;
         this.isHidden = false;
     }
@@ -41,7 +43,6 @@ public class CommentModel {
         this.content = content;
     }
 
-    // Getters and setters
     public String getCommentId() { return commentId; }
     public void setCommentId(String commentId) { this.commentId = commentId; }
 
@@ -67,7 +68,18 @@ public class CommentModel {
     public void setMentionedUsers(List<String> mentionedUsers) { this.mentionedUsers = mentionedUsers; }
 
     public Map<String, Boolean> getLikes() { return likes; }
-    public void setLikes(Map<String, Boolean> likes) { this.likes = likes; }
+    public void setLikes(Map<String, Boolean> likes) {
+        this.likes = likes;
+        this.likesCount = likes != null ? likes.size() : 0;
+    }
+
+    public int getLikesCount() {
+        return likesCount;
+    }
+
+    public void setLikesCount(int likesCount) {
+        this.likesCount = Math.max(0, likesCount);
+    }
 
     public int getRepliesCount() { return repliesCount; }
     public void setRepliesCount(int repliesCount) { this.repliesCount = repliesCount; }
@@ -100,6 +112,7 @@ public class CommentModel {
         result.put("imageUrls", imageUrls);
         result.put("mentionedUsers", mentionedUsers);
         result.put("likes", likes);
+        result.put("likesCount", likesCount);
         result.put("repliesCount", repliesCount);
         result.put("isHidden", isHidden);
         result.put("createdAt", createdAt);
@@ -107,25 +120,24 @@ public class CommentModel {
         return result;
     }
 
-    // Helper methods
     public void addLike(String userId) {
         if (likes == null) {
             likes = new HashMap<>();
         }
-        likes.put(userId, true);
+        if (!likes.containsKey(userId)) {
+            likes.put(userId, true);
+            likesCount++;
+        }
     }
 
     public void removeLike(String userId) {
-        if (likes != null) {
+        if (likes != null && likes.containsKey(userId)) {
             likes.remove(userId);
+            likesCount = Math.max(0, likesCount - 1);
         }
     }
 
     public boolean isLikedBy(String userId) {
         return likes != null && likes.containsKey(userId);
-    }
-
-    public int getLikesCount() {
-        return likes != null ? likes.size() : 0;
     }
 }

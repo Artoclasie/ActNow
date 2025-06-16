@@ -1,6 +1,8 @@
 package com.example.actnow.Adapters;
 
 import android.content.Context;
+import android.graphics.drawable.TransitionDrawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -23,7 +26,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentViewHolder> {
 
@@ -33,7 +35,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
     private final OnCommentInteractionListener listener;
 
     public interface OnCommentInteractionListener {
-        void onLikeComment(String commentId, boolean isLiked);
+        void onLikeComment(String commentId, boolean isLiked, CommentModel comment, CommentViewHolder holder);
         void onDeleteComment(CommentModel comment);
     }
 
@@ -47,55 +49,71 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
     @NonNull
     @Override
     public CommentViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.postcomment, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.postcomment, parent, false);
         return new CommentViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull CommentViewHolder holder, int position) {
         CommentModel comment = commentList.get(position);
+        Log.d("CommentAdapter", "Binding comment at position " + position + ": content=" + comment.getContent() + ", authorName=" + comment.getAuthorName());
         holder.bind(comment);
     }
 
     @Override
+    public void onBindViewHolder(@NonNull CommentViewHolder holder, int position, @NonNull List<Object> payloads) {
+        if (!payloads.isEmpty()) {
+            CommentModel comment = commentList.get(position);
+            holder.updateLikeUI(comment);
+        } else {
+            onBindViewHolder(holder, position);
+        }
+    }
+
+    @Override
     public int getItemCount() {
+        Log.d("CommentAdapter", "Item count: " + commentList.size());
         return commentList.size();
     }
 
     public void updateComments(List<CommentModel> newComments) {
         commentList.clear();
         commentList.addAll(newComments);
+        Log.d("CommentAdapter", "Updated with " + commentList.size() + " comments");
         notifyDataSetChanged();
     }
 
-    class CommentViewHolder extends RecyclerView.ViewHolder {
+    public void showLoading(boolean show) {
+        // Логика индикатора загрузки, если нужна
+    }
+
+    public class CommentViewHolder extends RecyclerView.ViewHolder {
         private final CardView userAvatarCard;
         private final ImageView userAvatar;
         private final TextView usernameText;
         private final TextView commentText;
         private final TextView timeText;
-        private final TextView likesCountText;
-        private final ImageButton likeButton;
-        private final TextView deleteText; // Изменили на TextView вместо ImageButton
+        public final TextView likesCountText;
+        public final ImageButton likeButton;
+        private final TextView deleteText;
 
         public CommentViewHolder(@NonNull View itemView) {
             super(itemView);
             userAvatarCard = itemView.findViewById(R.id.cv_comment_uid);
             userAvatar = itemView.findViewById(R.id.imv_comment_uid);
             usernameText = itemView.findViewById(R.id.tv_comment_uname);
-            commentText = itemView.findViewById(R.id.et_post_comment); // Изменили на TextView
+            commentText = itemView.findViewById(R.id.et_post_comment);
             timeText = itemView.findViewById(R.id.tv_comment_date);
             likesCountText = itemView.findViewById(R.id.tv_comment_likes);
             likeButton = itemView.findViewById(R.id.imb_comment_likes);
-            deleteText = itemView.findViewById(R.id.tv_comment_delete); // Изменили ID
+            deleteText = itemView.findViewById(R.id.tv_comment_delete);
         }
 
         public void bind(CommentModel comment) {
-            // Load user avatar
-            if (comment.getImageUrls() != null && !comment.getImageUrls().isEmpty()) {
+            Log.d("CommentViewHolder", "Binding comment: " + comment.getContent());
+            if (comment.getProfileImage() != null && !comment.getProfileImage().isEmpty()) {
                 Glide.with(context)
-                        .load(comment.getImageUrls().get(0)) // Assuming first image is the avatar
+                        .load(comment.getProfileImage())
                         .placeholder(R.drawable.default_profile_picture)
                         .error(R.drawable.default_profile_picture)
                         .into(userAvatar);
@@ -103,27 +121,19 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
                 userAvatar.setImageResource(R.drawable.default_profile_picture);
             }
 
-            // Set username
-            usernameText.setText(comment.getAuthorName());
-
-            // Set comment text
-            commentText.setText(comment.getContent());
-
-            // Set formatted time
+            usernameText.setText(comment.getAuthorName() != null ? comment.getAuthorName() : "Аноним");
+            commentText.setText(comment.getContent() != null ? comment.getContent() : "Нет текста");
             timeText.setText(formatTimestamp(comment.getCreatedAtLong()));
 
-            // Show delete option only for current user's comments
             if (currentUser != null && currentUser.getUid().equals(comment.getAuthorId())) {
                 deleteText.setVisibility(View.VISIBLE);
             } else {
                 deleteText.setVisibility(View.GONE);
             }
 
-            // Handle likes
             updateLikeUI(comment);
 
-            // Set click listeners
-            likeButton.setOnClickListener(v -> handleLikeClick(comment));
+            likeButton.setOnClickListener(v -> handleLikeClick(comment, this));
             deleteText.setOnClickListener(v -> {
                 if (currentUser != null && currentUser.getUid().equals(comment.getAuthorId())) {
                     listener.onDeleteComment(comment);
@@ -131,30 +141,55 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
             });
         }
 
-        private void updateLikeUI(CommentModel comment) {
-            Map<String, Boolean> likes = comment.getLikes();
-            int likesCount = likes != null ? likes.size() : 0;
-
+        public void updateLikeUI(CommentModel comment) {
+            int likesCount = comment.getLikesCount();
             likesCountText.setText(String.valueOf(likesCount));
 
-            if (currentUser != null && likes != null && likes.containsKey(currentUser.getUid())) {
-                likeButton.setImageResource(R.drawable.like_filled);
-                likeButton.setColorFilter(context.getResources().getColor(R.color.text));
+            boolean isLiked = currentUser != null && comment.isLikedBy(currentUser.getUid());
+            TransitionDrawable transition = (TransitionDrawable) ContextCompat.getDrawable(context, isLiked ? R.drawable.transition_like : R.drawable.transition_dislike);
+            if (transition != null) {
+                likeButton.setImageDrawable(transition);
+                transition.startTransition(200);
             } else {
-                likeButton.setImageResource(R.drawable.ic_dislike); // Изменили на ic_dislike из XML
-                likeButton.setColorFilter(context.getResources().getColor(R.color.text));
+                likeButton.setImageResource(isLiked ? R.drawable.ic_like : R.drawable.ic_dislike);
             }
+            likeButton.setColorFilter(null);
         }
 
-        private void handleLikeClick(CommentModel comment) {
+        private void handleLikeClick(CommentModel comment, CommentViewHolder holder) {
             if (currentUser == null) {
-                Toast.makeText(context, "Please sign in to like comments", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Войдите, чтобы ставить лайки", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            boolean isLiked = comment.getLikes() != null &&
-                    comment.getLikes().containsKey(currentUser.getUid());
-            listener.onLikeComment(comment.getCommentId(), !isLiked);
+            String currentUserId = currentUser.getUid();
+            int newLikesCount = comment.getLikesCount();
+            boolean isLiked = comment.isLikedBy(currentUserId);
+            boolean newLikeState;
+
+            if (isLiked) {
+                comment.removeLike(currentUserId);
+                newLikesCount--;
+                newLikeState = false;
+            } else {
+                comment.addLike(currentUserId);
+                newLikesCount++;
+                newLikeState = true;
+            }
+
+            final int finalLikesCount = Math.max(0, newLikesCount);
+
+            holder.likesCountText.setText(String.valueOf(finalLikesCount));
+            TransitionDrawable transition = (TransitionDrawable) ContextCompat.getDrawable(context, newLikeState ? R.drawable.transition_like : R.drawable.transition_dislike);
+            if (transition != null) {
+                holder.likeButton.setImageDrawable(transition);
+                transition.startTransition(200);
+            } else {
+                holder.likeButton.setImageResource(newLikeState ? R.drawable.ic_like : R.drawable.ic_dislike);
+            }
+
+            notifyItemChanged(getAdapterPosition(), "like_update");
+            listener.onLikeComment(comment.getCommentId(), newLikeState, comment, holder);
         }
 
         private String formatTimestamp(long timestamp) {

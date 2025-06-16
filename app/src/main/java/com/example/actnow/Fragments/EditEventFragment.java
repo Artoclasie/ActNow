@@ -57,13 +57,10 @@ public class EditEventFragment extends Fragment {
     private static final String TAG = "EditEventFragment";
     private static final int MAX_GALLERY_IMAGES = 10;
 
-    // Firebase
     private FirebaseFirestore db;
 
-    // Cloudinary
     private Cloudinary cloudinary;
 
-    // UI элементы
     private ImageView ivCoverPreview;
     private ImageButton btnAddCoverPhoto, btnDeleteCoverPhoto;
     private ImageButton btnAddGalleryPhoto;
@@ -75,7 +72,6 @@ public class EditEventFragment extends Fragment {
     private Chip chipAnimals, chipVeterans, chipYouth, chipEcology, chipEducation, chipSport;
     private Button btnCancel, btnCreateEvent;
 
-    // Данные
     private EventModel event;
     private String eventId;
     private Uri coverImageUri;
@@ -89,7 +85,6 @@ public class EditEventFragment extends Fragment {
     private Calendar endDate = Calendar.getInstance(TimeZone.getTimeZone("Europe/Minsk"));
     private int startHour, startMinute, endHour, endMinute;
 
-    // Activity Result Launchers
     private ActivityResultLauncher<Intent> coverImageLauncher;
     private ActivityResultLauncher<Intent> galleryImageLauncher;
 
@@ -105,7 +100,6 @@ public class EditEventFragment extends Fragment {
                 "api_secret", "E1GjuqHeNAaEFwXIsH6BM9KRnTA"
         ));
 
-        // Initialize image pickers
         coverImageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                 coverImageUri = result.getData().getData();
@@ -208,7 +202,7 @@ public class EditEventFragment extends Fragment {
     }
 
     private void setupListeners() {
-        // Image pickers
+
         btnAddCoverPhoto.setOnClickListener(v -> openImagePicker(coverImageLauncher, false));
         btnDeleteCoverPhoto.setOnClickListener(v -> {
             coverImageUri = null;
@@ -220,7 +214,6 @@ public class EditEventFragment extends Fragment {
         });
         btnAddGalleryPhoto.setOnClickListener(v -> openImagePicker(galleryImageLauncher, true));
 
-        // Date and time pickers
         Calendar minDate = Calendar.getInstance(TimeZone.getTimeZone("Europe/Minsk"));
         minDate.set(2025, Calendar.APRIL, 15);
         Calendar maxDate = Calendar.getInstance(TimeZone.getTimeZone("Europe/Minsk"));
@@ -260,7 +253,7 @@ public class EditEventFragment extends Fragment {
             TimePickerDialog dialog = new TimePickerDialog(
                     requireContext(),
                     (view1, hour, minute) -> {
-                        if (hour < 9 || (hour == 19 && minute > 0) || hour > 19) {
+                        if (hour < 6 || (hour == 20 && minute > 0) || hour > 20) {
                             Toast.makeText(getContext(), "Время должно быть с 09:00 до 19:00", Toast.LENGTH_SHORT).show();
                             return;
                         }
@@ -278,8 +271,8 @@ public class EditEventFragment extends Fragment {
             TimePickerDialog dialog = new TimePickerDialog(
                     requireContext(),
                     (view1, hour, minute) -> {
-                        if (hour < 9 || (hour == 19 && minute > 0) || hour > 19) {
-                            Toast.makeText(getContext(), "Время должно быть с 09:00 до 19:00", Toast.LENGTH_SHORT).show();
+                        if (hour < 6 || (hour == 20 && minute > 0) || hour > 20) {
+                            Toast.makeText(getContext(), "Время должно быть с 06:00 до 20:00", Toast.LENGTH_SHORT).show();
                             return;
                         }
                         endHour = hour;
@@ -292,7 +285,6 @@ public class EditEventFragment extends Fragment {
             dialog.show();
         });
 
-        // Description character counter
         etEventDescription.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -319,7 +311,6 @@ public class EditEventFragment extends Fragment {
         etAddress.addTextChangedListener(inputWatcher);
         etMinAge.addTextChangedListener(inputWatcher);
 
-        // Chip listeners
         View.OnClickListener chipListener = v -> validateInputs();
         chipAnimals.setOnClickListener(chipListener);
         chipVeterans.setOnClickListener(chipListener);
@@ -369,7 +360,6 @@ public class EditEventFragment extends Fragment {
     }
 
     private void populateFields() {
-        // Cover image
         if (event.getCoverImage() != null && !event.getCoverImage().isEmpty()) {
             Glide.with(this)
                     .load(event.getCoverImage())
@@ -381,7 +371,6 @@ public class EditEventFragment extends Fragment {
             btnAddCoverPhoto.setVisibility(View.GONE);
         }
 
-        // Gallery images
         if (event.getGallery() != null) {
             existingGalleryUrls.addAll(event.getGallery());
             galleryImages.addAll(existingGalleryUrls);
@@ -389,14 +378,11 @@ public class EditEventFragment extends Fragment {
             updateGalleryCount();
         }
 
-        // Title
         etEventTitle.setText(event.getTitle());
 
-        // Description
         etEventDescription.setText(event.getDescription());
         tvDescriptionCharCount.setText((event.getDescription() != null ? event.getDescription().length() : 0) + "/500");
 
-        // Dates
         if (event.getStartDate() != null) {
             startDate.setTime(event.getStartDate().toDate());
             etStartDate.setText(dateFormat.format(startDate.getTime()));
@@ -406,7 +392,6 @@ public class EditEventFragment extends Fragment {
             etEndDate.setText(dateFormat.format(endDate.getTime()));
         }
 
-        // Times
         if (event.getStartTime() != null) {
             try {
                 java.util.Date time = timeFormat.parse(event.getStartTime());
@@ -428,18 +413,14 @@ public class EditEventFragment extends Fragment {
             }
         }
 
-        // Max participants
         etMaxParticipants.setText(String.valueOf(event.getMaxParticipants()));
 
-        // Address
         etAddress.setText(event.getAddress());
 
-        // Min age
         if (event.getMinAge() > 0) {
             etMinAge.setText(String.valueOf(event.getMinAge()));
         }
 
-        // Tags
         if (event.getTags() != null) {
             for (String tag : event.getTags()) {
                 switch (tag) {
@@ -457,7 +438,6 @@ public class EditEventFragment extends Fragment {
     private void validateInputs() {
         boolean isValid = true;
 
-        // Title
         String title = etEventTitle.getText() != null ? etEventTitle.getText().toString().trim() : "";
         if (title.isEmpty()) {
             etEventTitle.setError("Введите название");
@@ -466,7 +446,6 @@ public class EditEventFragment extends Fragment {
             etEventTitle.setError(null);
         }
 
-        // Description
         String description = etEventDescription.getText() != null ? etEventDescription.getText().toString().trim() : "";
         if (description.length() > 500) {
             etEventDescription.setError("Описание слишком длинное");
@@ -475,7 +454,6 @@ public class EditEventFragment extends Fragment {
             etEventDescription.setError(null);
         }
 
-        // Dates
         String startDateStr = etStartDate.getText() != null ? etStartDate.getText().toString().trim() : "";
         String endDateStr = etEndDate.getText() != null ? etEndDate.getText().toString().trim() : "";
         try {
@@ -506,7 +484,6 @@ public class EditEventFragment extends Fragment {
             isValid = false;
         }
 
-        // Times
         String startTimeStr = etStartTime.getText() != null ? etStartTime.getText().toString().trim() : "";
         String endTimeStr = etEndTime.getText() != null ? etEndTime.getText().toString().trim() : "";
         try {
@@ -539,7 +516,6 @@ public class EditEventFragment extends Fragment {
             isValid = false;
         }
 
-        // Max participants
         String maxParticipantsStr = etMaxParticipants.getText() != null ? etMaxParticipants.getText().toString().trim() : "";
         if (maxParticipantsStr.isEmpty() || Integer.parseInt(maxParticipantsStr) <= 0) {
             etMaxParticipants.setError("Введите корректное число участников");
@@ -551,7 +527,6 @@ public class EditEventFragment extends Fragment {
             etMaxParticipants.setError(null);
         }
 
-        // Address
         String address = etAddress.getText() != null ? etAddress.getText().toString().trim() : "";
         if (address.isEmpty()) {
             etAddress.setError("Введите адрес");
@@ -560,7 +535,6 @@ public class EditEventFragment extends Fragment {
             etAddress.setError(null);
         }
 
-        // Min age
         String minAgeStr = etMinAge.getText() != null ? etMinAge.getText().toString().trim() : "";
         if (!minAgeStr.isEmpty()) {
             try {
@@ -577,11 +551,9 @@ public class EditEventFragment extends Fragment {
             }
         }
 
-        // Tags
         boolean hasTags = chipAnimals.isChecked() || chipVeterans.isChecked() || chipYouth.isChecked() ||
                 chipEcology.isChecked() || chipEducation.isChecked() || chipSport.isChecked();
 
-        // Cover image (required)
         if (coverImageUri == null && (event.getCoverImage() == null || event.getCoverImage().isEmpty())) {
             isValid = false;
         }

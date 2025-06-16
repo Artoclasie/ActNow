@@ -26,6 +26,8 @@ import com.example.actnow.Models.UserProfile;
 import com.example.actnow.PreferencesManager;
 import com.example.actnow.R;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
@@ -38,23 +40,26 @@ import com.google.gson.JsonSyntaxException;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProfileFragment extends Fragment {
 
     private static final String TAG = "ProfileFragment";
-    private static final long QUERY_TIMEOUT_MS = 10000; // Таймаут 10 секунд
-    private static final long SWIPE_DEBOUNCE_MS = 2000; // Дебouncing для свайпа
+    private static final long QUERY_TIMEOUT_MS = 10000;
+    private static final long SWIPE_DEBOUNCE_MS = 2000;
 
     private ImageView profileBackImageView, imvPostUid;
     private TextView tvProfileTitle, tvProfileUname, tvBio, tvBirthDate, tvRegistrationDate, tvCity, tvFollowStats;
-    private TextView tvOrganizedEvents, tvPosts, tvSubscribed, tvCompleted, tvReviews;
-    private ImageButton menuButton, btnOrganizedEvents, btnPosts, btnSubscribed, btnCompleted, btnReviews;
+    private TextView tvOrganizedEvents, tvPosts, tvSubscribed, tvComments, tvCompleted, tvReviews;
+    private ImageButton menuButton, btnOrganizedEvents, btnPosts, btnSubscribed, btnComments, btnCompleted, btnReviews;
     private Button btnEventReport;
     private MaterialButton btnCreateEvent;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ProgressBar progressBar;
+    private TextView tvInterestsLabel;
+    private ChipGroup chipGroupInterests;
     private FirebaseAuth mAuth;
     private FirebaseFirestore firebaseFirestore;
     private CollectionReference profilesRef;
@@ -93,9 +98,7 @@ public class ProfileFragment extends Fragment {
         setupClickListeners();
         setupSwipeRefresh();
 
-        if (progressBar != null) {
-            progressBar.setVisibility(View.VISIBLE);
-        }
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
         if (mAuth.getCurrentUser() != null) {
             loadCachedProfile();
             loadUserProfile();
@@ -143,6 +146,7 @@ public class ProfileFragment extends Fragment {
         tvOrganizedEvents = null;
         tvPosts = null;
         tvSubscribed = null;
+        tvComments = null;
         tvCompleted = null;
         tvReviews = null;
         profileBackImageView = null;
@@ -159,8 +163,11 @@ public class ProfileFragment extends Fragment {
         btnOrganizedEvents = null;
         btnPosts = null;
         btnSubscribed = null;
+        btnComments = null;
         btnCompleted = null;
         btnReviews = null;
+        tvInterestsLabel = null;
+        chipGroupInterests = null;
         Log.d(TAG, "Cleared view references in onDestroyView");
     }
 
@@ -183,7 +190,8 @@ public class ProfileFragment extends Fragment {
         tvOrganizedEvents = view.findViewById(R.id.tv_organized_events);
         tvPosts = view.findViewById(R.id.tv_posts);
         tvSubscribed = view.findViewById(R.id.tv_subscribed);
-        tvCompleted = view.findViewById(R.id.tv_completed);
+        tvComments = view.findViewById(R.id.tv_comments);
+        tvCompleted = view.findViewById(R.id.tv_completed); // Новый элемент
         tvReviews = view.findViewById(R.id.tv_reviews);
         menuButton = view.findViewById(R.id.menu_button);
         btnEventReport = view.findViewById(R.id.btn_event_report);
@@ -193,8 +201,11 @@ public class ProfileFragment extends Fragment {
         btnOrganizedEvents = view.findViewById(R.id.btn_organized_events);
         btnPosts = view.findViewById(R.id.btn_posts);
         btnSubscribed = view.findViewById(R.id.btn_subscribed);
-        btnCompleted = view.findViewById(R.id.btn_completed);
+        btnComments = view.findViewById(R.id.btn_comments);
+        btnCompleted = view.findViewById(R.id.btn_completed); // Новый элемент
         btnReviews = view.findViewById(R.id.btn_reviews);
+        tvInterestsLabel = view.findViewById(R.id.tv_interests_label);
+        chipGroupInterests = view.findViewById(R.id.chip_group_interests);
     }
 
     private void initFirebase() {
@@ -234,12 +245,19 @@ public class ProfileFragment extends Fragment {
         if (btnPosts != null) btnPosts.setOnClickListener(postsListener);
 
         View.OnClickListener subscribedListener = v -> {
-            Log.d(TAG, "Clicked Subscribed");
-            Toast.makeText(requireContext(), "Clicked Subscribed", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Clicked Subscribed"); Toast.makeText(requireContext(), "Clicked Subscribed", Toast.LENGTH_SHORT).show();
             navigateToFragment(ProfileRegisteredEventsFragment.class);
         };
         if (tvSubscribed != null) tvSubscribed.setOnClickListener(subscribedListener);
         if (btnSubscribed != null) btnSubscribed.setOnClickListener(subscribedListener);
+
+        View.OnClickListener commentsListener = v -> {
+            Log.d(TAG, "Clicked Comments");
+            Toast.makeText(requireContext(), "Clicked Comments", Toast.LENGTH_SHORT).show();
+            navigateToFragment(ProfileCommentsFragment.class);
+        };
+        if (tvComments != null) tvComments.setOnClickListener(commentsListener);
+        if (btnComments != null) btnComments.setOnClickListener(commentsListener);
 
         View.OnClickListener completedListener = v -> {
             Log.d(TAG, "Clicked Completed");
@@ -418,22 +436,12 @@ public class ProfileFragment extends Fragment {
         if (user != null) {
             accountType = user.getAccountType();
             requireActivity().runOnUiThread(() -> {
-                if (tvProfileTitle != null) {
-                    tvProfileTitle.setText("Профиль");
-                }
-                if (tvProfileUname != null) {
-                    tvProfileUname.setText(user.getUsername() != null ? user.getUsername() : "");
-                }
-                if (tvCity != null) {
-                    tvCity.setText(user.getCity() != null && !user.getCity().isEmpty() ? user.getCity() : "Город не указан");
-                }
-                if (tvBio != null) {
-                    tvBio.setText(user.getBio() != null && !user.getBio().isEmpty() ? user.getBio() : "Описание не указано");
-                }
+                if (tvProfileTitle != null) tvProfileTitle.setText("Профиль");
+                if (tvProfileUname != null) tvProfileUname.setText(user.getUsername() != null ? user.getUsername() : "");
+                if (tvCity != null) tvCity.setText(user.getCity() != null && !user.getCity().isEmpty() ? user.getCity() : "Город не указан");
+                if (tvBio != null) tvBio.setText(user.getBio() != null && !user.getBio().isEmpty() ? user.getBio() : "Описание не указано");
                 if (accountType != null && (accountType.equalsIgnoreCase("legal_entity") || accountType.equalsIgnoreCase("individual_organizer"))) {
-                    if (btnCreateEvent != null) {
-                        btnCreateEvent.setVisibility(View.VISIBLE);
-                    }
+                    if (btnCreateEvent != null) btnCreateEvent.setVisibility(View.VISIBLE);
                     if (tvBirthDate != null) {
                         Timestamp birthDate = user.getBirthDate();
                         tvBirthDate.setText(birthDate != null ? "Дата создания: " + formatDate(birthDate.toDate()) : "Дата создания: не указана");
@@ -443,13 +451,13 @@ public class ProfileFragment extends Fragment {
                     if (accountType.equalsIgnoreCase("legal_entity")) {
                         if (tvSubscribed != null) tvSubscribed.setVisibility(View.GONE);
                         if (btnSubscribed != null) btnSubscribed.setVisibility(View.GONE);
+                        if (tvComments != null) tvComments.setVisibility(View.GONE);
+                        if (btnComments != null) btnComments.setVisibility(View.GONE);
                         if (tvCompleted != null) tvCompleted.setVisibility(View.GONE);
                         if (btnCompleted != null) btnCompleted.setVisibility(View.GONE);
                     }
                 } else {
-                    if (btnCreateEvent != null) {
-                        btnCreateEvent.setVisibility(View.GONE);
-                    }
+                    if (btnCreateEvent != null) btnCreateEvent.setVisibility(View.GONE);
                     if (tvBirthDate != null) {
                         Timestamp birthDate = user.getBirthDate();
                         tvBirthDate.setText(birthDate != null ? "День рождения: " + formatDate(birthDate.toDate()) : "День рождения: не указан");
@@ -464,13 +472,48 @@ public class ProfileFragment extends Fragment {
                 if (tvFollowStats != null) {
                     tvFollowStats.setText(user.getFollowingCount() + " читает  " + user.getFollowersCount() + " читателя(-ей)");
                 }
+
+                if (btnEventReport != null) {
+                    btnEventReport.setVisibility(accountType != null && accountType.equalsIgnoreCase("volunteer") ? View.GONE : View.VISIBLE);
+                }
+
+                List<String> interests = user.getInterests();
+                Log.d(TAG, "Account type: " + (accountType != null ? accountType : "null"));
+                Log.d(TAG, "Interests retrieved: " + (interests != null ? interests.toString() : "null"));
+                if (tvInterestsLabel != null && chipGroupInterests != null) {
+                    if (accountType != null && !accountType.equalsIgnoreCase("legal_entity") && interests != null && !interests.isEmpty()) {
+                        Log.d(TAG, "Setting interests visible");
+                        tvInterestsLabel.setVisibility(View.VISIBLE);
+                        chipGroupInterests.setVisibility(View.VISIBLE);
+                        chipGroupInterests.removeAllViews();
+                        for (String interest : interests) {
+                            Chip chip = new Chip(requireContext(), null, R.style.CustomChipStyle);
+                            chip.setText(interest != null ? interest : "Не указано");
+                            chip.setEnabled(false);
+                            chip.setTextSize(14);
+                            chip.setChipCornerRadius(0);
+                            chip.setChipBackgroundColorResource(R.color.back);
+                            chip.setChipStrokeColorResource(R.color.button);
+                            chip.setChipStrokeWidth(2);
+                            chipGroupInterests.addView(chip);
+                            chip.post(() -> {
+                                Log.d(TAG, "Added chip: " + chip.getText() + ", visibility: " + chip.getVisibility() + ", width: " + chip.getWidth() + ", height: " + chip.getHeight());
+                            });
+                        }
+                    } else {
+                        Log.d(TAG, "Hiding interests for legal_entity or no interests");
+                        tvInterestsLabel.setVisibility(View.GONE);
+                        chipGroupInterests.setVisibility(View.GONE);
+                        chipGroupInterests.removeAllViews();
+                    }
+                    Log.d(TAG, "tvInterestsLabel visibility: " + tvInterestsLabel.getVisibility());
+                    Log.d(TAG, "chipGroupInterests visibility: " + chipGroupInterests.getVisibility() + ", width: " + chipGroupInterests.getWidth() + ", height: " + chipGroupInterests.getHeight());
+                } else {
+                    Log.e(TAG, "tvInterestsLabel or chipGroupInterests is null");
+                }
                 loadProfileImages(user.getProfileImage(), user.getBackgroundImageUrl());
-                if (swipeRefreshLayout != null) {
-                    swipeRefreshLayout.setRefreshing(false);
-                }
-                if (progressBar != null) {
-                    progressBar.setVisibility(View.GONE);
-                }
+                if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
             });
         } else {
             Log.e(TAG, "UserProfile is null");

@@ -12,16 +12,17 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="wrap_content"
             android:background="@color/button"
-            app:title="Мероприятия"
+            app:title="   Мероприятия"
+            app:titleTextAppearance="@style/ToolbarTitleAppearance"
             app:titleTextColor="@color/text"
             app:layout_scrollFlags="scroll|enterAlways">
 
             <ImageView
                 android:id="@+id/ivSearch"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
                 android:layout_gravity="end"
                 android:layout_marginEnd="16dp"
                 android:src="@drawable/ic_search"
@@ -72,25 +73,22 @@
                         android:id="@+id/chipOnline"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:titleTextColor="@color/text"
                         android:text="Животные"
-                        style="@style/Widget.MaterialComponents.Chip.Filter"/>
+                        style="@style/CustomChipStyle"/>
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipOffline"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:titleTextColor="@color/text"
                         android:text="Люди"
-                        style="@style/Widget.MaterialComponents.Chip.Filter"/>
+                        style="@style/CustomChipStyle"/>
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipHybrid"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:titleTextColor="@color/text"
                         android:text="Природа"
-                        style="@style/Widget.MaterialComponents.Chip.Filter"/>
+                        style="@style/CustomChipStyle"/>
 
                 </com.google.android.material.chip.ChipGroup>
 

@@ -7,7 +7,7 @@ import java.util.HashMap;
 public class NotificationModel {
     private String notificationId;
     private String userId;
-    private String type; // event_invite, event_update, event_cancel, mention, follow, like, comment, system
+    private String type;
     private String title;
     private String message;
     private Map<String, String> data;
@@ -68,7 +68,6 @@ public class NotificationModel {
     public String getMentionedBy() { return data.get("mentionedBy"); }
     public void setMentionedBy(String mentionedBy) { data.put("mentionedBy", mentionedBy); }
 
-    // Helper methods
     public void addData(String key, String value) {
         data.put(key, value);
     }

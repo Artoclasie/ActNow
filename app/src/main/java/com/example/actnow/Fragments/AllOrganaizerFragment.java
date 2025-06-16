@@ -1,16 +1,19 @@
 package com.example.actnow.Fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import com.example.actnow.Adapters.OrganizerAdapter;
+import com.example.actnow.AnotherProfileActivity;
 import com.example.actnow.Models.UserProfile;
 import com.example.actnow.R;
 import com.google.firebase.Timestamp;
@@ -51,19 +54,10 @@ public class AllOrganaizerFragment extends Fragment implements HomeFragment.Sear
 
     private void setupRecyclerView() {
         adapter = new OrganizerAdapter(organizers, user -> {
-            Fragment fragment;
-            Bundle args = new Bundle();
-            args.putString("userId", user.getUserId());
-            if (user.getUserId().equals(currentUserId)) {
-                fragment = new ProfileFragment();
-            } else {
-                fragment = new AnotherProfileFragment();
-            }
-            fragment.setArguments(args);
-            FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.fragment_container, fragment);
-            transaction.addToBackStack(null);
-            transaction.commit();
+            Intent intent = new Intent(getActivity(), AnotherProfileActivity.class);
+            intent.putExtra("uid", user.getUserId());
+            intent.putExtra("fromChatsFragment", false);
+            startActivity(intent);
         });
         rvOrganizers.setLayoutManager(new LinearLayoutManager(getContext()));
         rvOrganizers.setAdapter(adapter);
@@ -91,7 +85,7 @@ public class AllOrganaizerFragment extends Fragment implements HomeFragment.Sear
                                     (String) user.getProfile().get("name");
                             String displayCity = user.getCity() != null ? user.getCity() :
                                     (String) user.getProfile().get("city");
-                            if ((displayName != null || displayCity != null) && !user.isBanned()) {
+                            if (displayName != null || displayCity != null) {
                                 Log.d(TAG, "Loaded organizer: userId=" + user.getUserId() +
                                         ", name=" + displayName +
                                         ", city=" + displayCity +
@@ -100,7 +94,7 @@ public class AllOrganaizerFragment extends Fragment implements HomeFragment.Sear
                                 allOrganizers.add(user);
                             } else {
                                 Log.w(TAG, "Skipped organizer with userId=" + doc.getId() +
-                                        " due to missing name and city or banned");
+                                        " due to missing name and city");
                             }
                         } else {
                             Log.w(TAG, "Skipped organizer with userId=" + doc.getId() +
@@ -114,8 +108,7 @@ public class AllOrganaizerFragment extends Fragment implements HomeFragment.Sear
                                     if (currentUser != null &&
                                             ("individual_organizer".equals(currentUser.getAccountType()) ||
                                                     "legal_entity".equals(currentUser.getAccountType()) ||
-                                                    "volunteer".equals(currentUser.getAccountType())) &&
-                                            !currentUser.isBanned()) {
+                                                    "volunteer".equals(currentUser.getAccountType()))) {
                                         currentUser.setUserId(currentUserId);
                                         String displayName = currentUser.getUsername() != null ? currentUser.getUsername() :
                                                 (String) currentUser.getProfile().get("name");
@@ -134,7 +127,7 @@ public class AllOrganaizerFragment extends Fragment implements HomeFragment.Sear
                                         }
                                     } else {
                                         Log.w(TAG, "Skipped current user with userId=" + currentUserId +
-                                                " due to invalid accountType or banned");
+                                                " due to invalid accountType");
                                     }
                                     updateOrganizersList();
                                 })

@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import com.example.actnow.Models.UserProfile;
 import com.google.firebase.auth.FirebaseAuth;
@@ -240,6 +241,7 @@ public class RegistrActivity extends AppCompatActivity {
             userProfile.setBio("");
             userProfile.setProfileImage("");
             userProfile.setBackgroundImageUrl("");
+            userProfile.setThemeMode(AppCompatDelegate.MODE_NIGHT_NO);
 
             // Сохраняем в Firestore
             db.collection("Profiles").document(userId)

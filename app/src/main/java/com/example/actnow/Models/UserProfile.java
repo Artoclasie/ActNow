@@ -18,38 +18,27 @@ public class UserProfile {
     private List<String> interests;
     private List<String> searchKeywords;
     private String accountType;
-    private String role; // For Firestore 'role' field
-    private boolean isAdmin;
-    private boolean isVerified;
-    private boolean isBanned;
+    private String role;
     private Map<String, Object> stats;
     private Timestamp createdAt;
     private Timestamp updatedAt;
-    private String avatarUrl; // Top-level avatarUrl
-    private String backgroundImageUrl; // Top-level backgroundImageUrl
-    private String city; // Top-level city
-    private Timestamp birthDate; // Added top-level birthDate
-    // Excluded fields to suppress Firestore warnings
-    @Exclude private String friendsCount;
-    @Exclude private String reviewsCount;
-    @Exclude private String applicationsCount;
-    @Exclude private String favoritesCount;
-    @Exclude private String organizationsCount;
-    @Exclude private String profileImageUrl;
+    private String avatarUrl;
+    private String backgroundImageUrl;
+    private String city;
+    private Timestamp birthDate;
+    private int themeMode;
 
     public UserProfile() {
         this.profile = new HashMap<>();
         this.interests = new ArrayList<>();
         this.searchKeywords = new ArrayList<>();
         this.stats = new HashMap<>();
-        this.isAdmin = false;
-        this.isBanned = false;
         this.createdAt = Timestamp.now();
         this.updatedAt = Timestamp.now();
-        // Initialize stats with default values
+
         stats.put("postsCount", 0);
         stats.put("eventsAttended", 0);
-        stats.put("eventsRegistered", 0); // New field for registered events
+        stats.put("eventsRegistered", 0);
         stats.put("organizedEvents", 0);
         stats.put("volunteerHours", 0);
         stats.put("followersCount", 0);
@@ -65,7 +54,14 @@ public class UserProfile {
         this.accountType = accountType;
     }
 
-    // Getters and Setters
+    public int getThemeMode() {
+        return themeMode;
+    }
+
+    public void setThemeMode(int themeMode) {
+        this.themeMode = themeMode;
+    }
+
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
 
@@ -98,15 +94,6 @@ public class UserProfile {
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 
-    public boolean isAdmin() { return isAdmin; }
-    public void setAdmin(boolean admin) { isAdmin = admin; }
-
-    public boolean isVerified() { return isVerified; }
-    public void setVerified(boolean verified) { isVerified = verified; }
-
-    public boolean isBanned() { return isBanned; }
-    public void setBanned(boolean banned) { isBanned = banned; }
-
     public Map<String, Object> getStats() { return stats; }
     public void setStats(Map<String, Object> stats) { this.stats = stats; }
 
@@ -128,7 +115,7 @@ public class UserProfile {
     public Timestamp getBirthDate() { return birthDate; }
     public void setBirthDate(Timestamp birthDate) { this.birthDate = birthDate; }
 
-    // Profile getters and setters (fallback to top-level fields)
+
     public String getName() { return username; }
     public void setName(String name) { profile.put("name", name); this.username = name; }
 
@@ -147,7 +134,6 @@ public class UserProfile {
         profile.put("socialLinks", socialLinks);
     }
 
-    // Stats getters and setters (updated to handle Number for counts)
     public double getRating() { return (double) stats.getOrDefault("rating", 0.0); }
     public void setRating(double rating) { stats.put("rating", rating); }
 
@@ -190,39 +176,6 @@ public class UserProfile {
     public Timestamp getLastEventDate() { return (Timestamp) stats.get("lastEventDate"); }
     public void setLastEventDate(Timestamp lastEventDate) { stats.put("lastEventDate", lastEventDate); }
 
-    // New method for events registered
-    public int getEventsRegistered() {
-        Number value = (Number) stats.getOrDefault("eventsRegistered", 0);
-        return value != null ? value.intValue() : 0;
-    }
-    public void setEventsRegistered(int eventsRegistered) { stats.put("eventsRegistered", eventsRegistered); }
-
-    // Helper methods
-    public void addInterest(String interest) {
-        if (!interests.contains(interest)) interests.add(interest);
-    }
-
-    public void removeInterest(String interest) { interests.remove(interest); }
-
-    public void addSearchKeyword(String keyword) {
-        if (!searchKeywords.contains(keyword)) searchKeywords.add(keyword);
-    }
-
-    public void removeSearchKeyword(String keyword) { searchKeywords.remove(keyword); }
-
-    public void addSocialLink(String platform, String url) {
-        Map<String, String> socialLinks = getSocialLinks();
-        socialLinks.put(platform, url);
-        setSocialLinks(socialLinks);
-    }
-
-    public void removeSocialLink(String platform) {
-        Map<String, String> socialLinks = getSocialLinks();
-        socialLinks.remove(platform);
-        setSocialLinks(socialLinks);
-    }
-
-    public void updateStat(String key, Object value) { stats.put(key, value); }
 
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
@@ -230,22 +183,20 @@ public class UserProfile {
         map.put("email", email);
         map.put("passwordHash", passwordHash);
         map.put("username", username);
-        map.put("birthDate", birthDate); // Use top-level birthDate
+        map.put("birthDate", birthDate);
         map.put("customTag", customTag);
         map.put("profile", profile);
         map.put("interests", interests);
         map.put("searchKeywords", searchKeywords);
         map.put("accountType", accountType);
         map.put("role", role);
-        map.put("isAdmin", isAdmin);
-        map.put("isVerified", isVerified);
-        map.put("isBanned", isBanned);
         map.put("stats", stats);
         map.put("createdAt", createdAt);
         map.put("updatedAt", updatedAt);
         map.put("avatarUrl", avatarUrl);
         map.put("backgroundImageUrl", backgroundImageUrl);
         map.put("city", city);
+        map.put("themeMode", themeMode);
         return map;
     }
 }

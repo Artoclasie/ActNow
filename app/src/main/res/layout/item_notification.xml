@@ -13,14 +13,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:background="@color/back">
 
         <TextView
             android:id="@+id/tv_notification_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="16sp"
-            android:textColor="@color/back"
+            android:gravity="center"
+            android:fontFamily="@font/barkentina"
+            android:textColor="@color/previwtext"
             android:textStyle="bold"/>
 
         <TextView
@@ -28,7 +31,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textSize="14sp"
+            android:textSize="16sp"
+            android:fontFamily="@font/barkentina"
             android:textColor="@color/text"/>
 
         <TextView
@@ -37,7 +41,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:textSize="12sp"
-            android:textColor="@color/text"/>
+            android:fontFamily="@font/barkentina"
+            android:textColor="@color/gray"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_delete"
@@ -47,8 +52,10 @@
             android:layout_gravity="end"
             android:layout_marginTop="8dp"
             android:visibility="gone"
+            android:textSize="16sp"
             android:text="Удалить"
-            android:textColor="@color/button"
+            android:fontFamily="@font/barkentina"
+            android:textColor="@color/text"
             android:paddingHorizontal="8dp"
             android:paddingVertical="4dp"/>
 

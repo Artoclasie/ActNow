@@ -1,257 +1,353 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/back">
+    android:background="@color/back"
+    android:fillViewport="true">
 
-    <!-- Toolbar -->
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@color/back"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="wrap_content">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+        <!-- Toolbar -->
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="0dp"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/back"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
-            <ImageView
-                android:id="@+id/btnBack"
-                android:layout_width="35dp"
-                android:layout_height="35dp"
-                android:padding="8dp"
-                android:src="@drawable/out"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Изменить профиль"
-                android:textColor="@color/text"
-                android:textSize="16sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@id/btnBack"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <ImageView
-                android:id="@+id/btnMenu"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:src="@drawable/ic_edit"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/btnSave"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/btnSave"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="Сохранить"
-                android:textColor="@color/text"
-                android:textSize="16sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.appcompat.widget.Toolbar>
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:isScrollContainer="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <!-- Фон профиля -->
-            <RelativeLayout
-                android:id="@+id/backgroundContainer"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="180dp">
+                android:layout_height="match_parent">
 
-                <!-- Фоновое изображение -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/cv_profile_image"
+                <ImageView
+                    android:id="@+id/btnBack"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_back_arrow"
+                    android:contentDescription="@string/back_button_desc"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/edit_profile_title"
+                    android:textColor="@color/text"
+                    android:textSize="22sp"
+                    android:fontFamily="@font/barkentina"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/btnBack"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:id="@+id/btnMenu"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_edit"
+                    android:contentDescription="@string/menu_button_desc"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/btnSave"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/btnSave"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:text="@string/save_button"
+                    android:fontFamily="@font/barkentina"
+                    android:textColor="@color/text"
+                    android:textSize="16sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.appcompat.widget.Toolbar>
+
+        <!-- Background Image -->
+        <RelativeLayout
+            android:id="@+id/backgroundContainer"
+            android:layout_width="0dp"
+            android:layout_height="180dp"
+            app:layout_constraintTop_toBottomOf="@id/toolbar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cv_profile_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:cardBackgroundColor="@color/button"
+                app:cardCornerRadius="0dp"
+                app:cardElevation="0dp">
+
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    app:cardBackgroundColor="@color/button"
-                    app:cardCornerRadius="0dp"
-                    app:cardElevation="0dp">
-
-                    <FrameLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent">
-
-                        <ImageView
-                            android:id="@+id/profileBackImageView"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:adjustViewBounds="true"
-                            android:contentDescription="@string/profile_image_desc"
-                            android:scaleType="centerCrop"
-                            android:src="@drawable/ava"
-                            android:alpha="0.7"/>
-
-                        <!-- Иконка камеры на фоне -->
-                        <ImageView
-                            android:id="@+id/btnChangeBackground"
-                            android:layout_width="80dp"
-                            android:layout_height="80dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_camera"
-                            app:tint="#80FFFFFF" />
-                    </FrameLayout>
-                </androidx.cardview.widget.CardView>
-            </RelativeLayout>
-
-            <!-- Аватар с кнопкой -->
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="-30dp"
-                android:paddingStart="16dp">
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/cv_post_uid"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
-                    app:cardCornerRadius="40dp"
-                    android:elevation="8dp">
+                    android:layout_height="match_parent">
 
                     <ImageView
-                        android:id="@+id/imv_post_uid"
+                        android:id="@+id/profileBackImageView"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:adjustViewBounds="true"
+                        android:contentDescription="@string/background_image_desc"
                         android:scaleType="centerCrop"
-                        android:contentDescription="@string/profile_avatar_desc"
-                        android:src="@drawable/default_profile_picture"/>
-                </androidx.cardview.widget.CardView>
+                        android:background="@color/back"
+                        android:alpha="0.7"/>
 
-                <!-- Кнопка изменения аватара -->
+                    <ImageView
+                        android:id="@+id/btnChangeBackground"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_camera"
+                        android:contentDescription="@string/change_background_desc"
+                        app:tint="#80FFFFFF" />
+                </FrameLayout>
+            </androidx.cardview.widget.CardView>
+        </RelativeLayout>
+
+        <!-- Avatar -->
+        <RelativeLayout
+            android:id="@+id/avatarContainer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="-40dp"
+            android:paddingStart="16dp"
+            app:layout_constraintTop_toBottomOf="@id/backgroundContainer"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cv_post_uid"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                app:cardCornerRadius="40dp"
+                android:elevation="8dp">
+
                 <ImageView
-                    android:id="@+id/btnChangeAvatar"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:layout_alignBottom="@id/cv_post_uid"
-                    android:layout_alignEnd="@id/cv_post_uid"
-                    android:src="@drawable/ic_camera"
-                    android:background="@drawable/circle_white_bg"
-                    android:padding="8dp"
-                    android:elevation="8dp"/>
-            </RelativeLayout>
+                    android:id="@+id/imv_post_uid"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="@string/avatar_image_desc"
+                    android:src="@drawable/default_profile_picture"/>
+            </androidx.cardview.widget.CardView>
 
-            <!-- Основные поля профиля -->
-            <LinearLayout
-                android:layout_width="match_parent"
+            <ImageView
+                android:id="@+id/btnChangeAvatar"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_alignBottom="@id/cv_post_uid"
+                android:layout_alignEnd="@id/cv_post_uid"
+                android:src="@drawable/ic_camera"
+                android:background="@drawable/circle_white_bg"
+                android:padding="8dp"
+                android:elevation="8dp"
+                android:contentDescription="@string/change_avatar_desc"/>
+        </RelativeLayout>
+
+        <!-- Profile Fields -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@id/avatarContainer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Username -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/username_label"
+            android:fontFamily="@font/barkentina"
+            android:textColor="@color/text"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/etUsername"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="16dp"
+            android:fontFamily="@font/barkentina"
+            android:textColor="@color/text"
+            android:background="@android:color/transparent"
+            android:padding="8dp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/button"/>
+
+        <!-- Bio -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/bio_label"
+            android:fontFamily="@font/barkentina"
+            android:textColor="@color/text"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/etBio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/text"
+            android:textSize="16dp"
+            android:fontFamily="@font/barkentina"
+            android:background="@android:color/transparent"
+            android:padding="8dp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/button"/>
+
+        <!-- Location -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/location_label"
+            android:fontFamily="@font/barkentina"
+            android:textColor="@color/text"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/etLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/text"
+            android:textSize="16sp"
+            android:fontFamily="@font/barkentina"
+            android:background="@android:color/transparent"
+            android:padding="8dp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/button"/>
+
+        <!-- Tags -->
+        <TextView
+            android:id="@+id/tv_tags_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/tags_label"
+            android:fontFamily="@font/barkentina"
+            android:textColor="@color/text"
+            android:textSize="18sp" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_tags"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="8dp">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_animals"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:text="@string/tag_animals"
+                android:checkable="true"
+                style="@style/CustomChipStyle"
+                app:checkedIconEnabled="true"/>
 
-                <!-- Имя -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Имя"
-                    android:textColor="@color/text"
-                    android:textSize="16sp" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_veterans"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/tag_veterans"
+                android:checkable="true"
+                style="@style/CustomChipStyle"
+                app:checkedIconEnabled="true"/>
 
-                <EditText
-                    android:id="@+id/etUsername"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textColor="@color/text"
-                    android:background="@android:color/transparent"
-                    android:padding="8dp"/>
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_youth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/tag_youth"
+                android:checkable="true"
+                style="@style/CustomChipStyle"
+                app:checkedIconEnabled="true"/>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="8dp"
-                    android:background="@color/chip_stroke"/>
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_ecology"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/tag_ecology"
+                android:checkable="true"
+                style="@style/CustomChipStyle"
+                app:checkedIconEnabled="true"/>
 
-                <!-- О себе -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="О себе"
-                    android:textColor="@color/text"
-                    android:textSize="16sp" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_education"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/tag_education"
+                android:checkable="true"
+                style="@style/CustomChipStyle"
+                app:checkedIconEnabled="true"/>
 
-                <EditText
-                    android:id="@+id/etBio"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textColor="@color/text"
-                    android:background="@android:color/transparent"
-                    android:padding="8dp"/>
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_sport"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/tag_sport"
+                android:checkable="true"
+                style="@style/CustomChipStyle"
+                app:checkedIconEnabled="true"/>
+        </com.google.android.material.chip.ChipGroup>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="8dp"
-                    android:background="@color/chip_stroke"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/chip_stroke"/>
 
-                <!-- Местоположение -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Местоположение"
-                    android:textColor="@color/text"
-                    android:textSize="16sp" />
+        <!-- Birth Date -->
+        <TextView
+            android:id="@+id/tvBirthDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/birthdate_label"
+            android:fontFamily="@font/barkentina"
+            android:textColor="@color/text"
+            android:textSize="18sp" />
 
-                <EditText
-                    android:id="@+id/etLocation"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textColor="@color/text"
-                    android:background="@android:color/transparent"
-                    android:padding="8dp"/>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="8dp"
-                    android:background="@color/chip_stroke"/>
-
-                <!-- Дата рождения -->
-                <TextView
-                    android:id="@+id/tvBirthDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Дата рождения"
-                    android:textColor="@color/text"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/tvBirthDateValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textColor="@color/text"
-                    android:textSize="14sp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:background="?android:attr/selectableItemBackground"/>
-
-            </LinearLayout>
-        </LinearLayout>
-    </ScrollView>
-
+        <TextView
+            android:id="@+id/tvBirthDateValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/text"
+            android:fontFamily="@font/barkentina"
+            android:textSize="16sp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground"/>
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>

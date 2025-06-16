@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.actnow.Models.ReviewModel;
 import com.example.actnow.R;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -62,6 +63,37 @@ public class RateEventFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        String currentUserId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+        if (currentUserId == null) {
+            Toast.makeText(getContext(), "Ошибка: пользователь не авторизован", Toast.LENGTH_SHORT).show();
+            getParentFragmentManager().popBackStack();
+            return null;
+        }
+
+        db.collection("Reviews")
+                .whereEqualTo("reviewerId", currentUserId)
+                .whereEqualTo("eventId", eventId)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+
+                        Toast.makeText(getContext(), "Вы уже оставили отзыв на это мероприятие", Toast.LENGTH_SHORT).show();
+                        getParentFragmentManager().popBackStack();
+                    } else {
+
+                        initializeView(inflater, container);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Ошибка проверки отзыва", e);
+                    Toast.makeText(getContext(), "Ошибка проверки отзыва", Toast.LENGTH_SHORT).show();
+                    getParentFragmentManager().popBackStack();
+                });
+
+        return null;
+    }
+
+    private void initializeView(LayoutInflater inflater, ViewGroup container) {
         View view = inflater.inflate(R.layout.fragment_rate_event, container, false);
 
         tvEventTitle = view.findViewById(R.id.tv_event_title);
@@ -69,10 +101,8 @@ public class RateEventFragment extends Fragment {
         etReview = view.findViewById(R.id.et_review);
         btnSubmit = view.findViewById(R.id.btn_submit);
 
-        // Устанавливаем только целые звезды для ввода
         ratingBar.setStepSize(1.0f);
 
-        // Set event title with "Мероприятие окончено!" prefix
         db.collection("events").document(eventId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -84,7 +114,7 @@ public class RateEventFragment extends Fragment {
 
         btnSubmit.setOnClickListener(v -> submitRating());
 
-        return view;
+        container.addView(view);
     }
 
     private void submitRating() {
@@ -102,23 +132,39 @@ public class RateEventFragment extends Fragment {
 
         String reviewText = etReview.getText().toString().trim();
         ReviewModel review = new ReviewModel();
-        review.setUserId(organizerId); // Предполагается, что organizerId — это ID пользователя, которого оценивают
+        review.setUserId(organizerId);
         review.setReviewerId(currentUserId);
         review.setEventId(eventId);
         review.setRating(rating);
         review.setContent(reviewText.isEmpty() ? null : reviewText);
-        review.setCreatedAt(new Date());
+        review.setCreatedAt(Timestamp.now());
 
-        db.collection("Reviews")
-                .add(review)
-                .addOnSuccessListener(documentReference -> {
-                    updateAverageRating(organizerId, eventId, rating);
-                    Toast.makeText(getContext(), "Отзыв отправлен", Toast.LENGTH_SHORT).show();
-                    getParentFragmentManager().popBackStack();
+        db.collection("events").document(eventId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String title = documentSnapshot.getString("title");
+                        review.setEventTitle(title != null ? title : "Без названия");
+                    } else {
+                        review.setEventTitle("Мероприятие не найдено");
+                    }
+
+                    // Сохраняем отзыв
+                    db.collection("Reviews")
+                            .add(review)
+                            .addOnSuccessListener(documentReference -> {
+                                updateAverageRating(organizerId, eventId, rating);
+                                Toast.makeText(getContext(), "Отзыв отправлен", Toast.LENGTH_SHORT).show();
+                                getParentFragmentManager().popBackStack();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Ошибка отправки отзыва", e);
+                                Toast.makeText(getContext(), "Ошибка отправки отзыва", Toast.LENGTH_SHORT).show();
+                            });
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Ошибка отправки отзыва", e);
-                    Toast.makeText(getContext(), "Ошибка отправки отзыва", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Ошибка получения названия мероприятия", e);
+                    Toast.makeText(getContext(), "Ошибка получения данных мероприятия", Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -137,12 +183,10 @@ public class RateEventFragment extends Fragment {
                     }
                     double averageRating = reviewCount > 0 ? totalRating / reviewCount : newRating;
 
-                    // Update EventModel
                     db.collection("events").document(eventId)
                             .update("averageRating", averageRating);
 
-                    // Update UserProfile
-                    db.collection("UserProfiles").document(organizerId)
+                    db.collection("Profiles").document(organizerId)
                             .update("stats.rating", averageRating);
                 });
     }

@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="transparent">#00000000</color>
-    <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="gray">#808080</color>
+
     <color name="text">#223542</color>
-    <color name="post">#A3BFFA</color> <!-- Light blue for posts -->
-    <color name="menu">#90CAF9</color> <!-- Slightly lighter blue for menu -->
-    <color name="button">#42A5F5</color> <!-- Vibrant blue for buttons -->
+    <color name="previwtext">#42A5F5</color>
+    <color name="button">#88bfec</color>
     <color name="back">#F5F5F5</color>
-    <color name="ramki">#42A5F5</color> <!-- Matching blue for frames -->
+
+
+    <!-- посмотрим -->
+    <color name="ramki">#42A5F5</color>
     <color name="chip_background">#F5F5F5</color>
-    <color name="chip_stroke">#90A4AE</color> <!-- Muted blue-gray for chip stroke -->
+    <color name="chip_stroke">#90A4AE</color>
+    <color name="accent">#FF5722</color>
+    <color name="menu">#90CAF9</color>
+    <color name="post">#A3BFFA</color>
 </resources>

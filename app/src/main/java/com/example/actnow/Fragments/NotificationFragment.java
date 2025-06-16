@@ -106,12 +106,21 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
         db.collection("Profiles").document(userId)
                 .collection("notifications")
                 .document(notification.getNotificationId())
-                .set(notification.toMap())
-                .addOnSuccessListener(aVoid -> {
-                    // Успешно сохранено
-                })
-                .addOnFailureListener(e -> {
-                    // Ошибка сохранения
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (!document.exists()) {
+                            db.collection("Profiles").document(userId)
+                                    .collection("notifications")
+                                    .document(notification.getNotificationId())
+                                    .set(notification.toMap())
+                                    .addOnSuccessListener(aVoid -> {
+                                    })
+                                    .addOnFailureListener(e -> {
+                                    });
+                        }
+                    }
                 });
     }
 
@@ -130,18 +139,17 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
                         for (DocumentSnapshot document : task.getResult()) {
                             NotificationModel notification = document.toObject(NotificationModel.class);
                             if (notification != null) {
-                                notifications.add(0, notification); // Добавляем в начало списка
+                                notifications.add(0, notification);
                             }
                         }
 
-                        // Если нет уведомлений, можно показать приветственное
                         if (notifications.isEmpty()) {
                             sendWelcomeNotification();
                         } else {
                             adapter.notifyDataSetChanged();
                         }
                     } else {
-                        // В случае ошибки загрузки показываем локальные уведомления
+
                         loadSampleNotifications();
                     }
                 });
@@ -150,7 +158,6 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
     private void loadSampleNotifications() {
         notifications.clear();
 
-        // Сегодня
         NotificationModel notification1 = new NotificationModel(
                 "1",
                 "user1",
@@ -171,7 +178,6 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
         notification2.setCreatedAt(new Timestamp(new Date(System.currentTimeMillis() - 18 * 60 * 60 * 1000)));
         notifications.add(notification2);
 
-        // Главная
         NotificationModel notification3 = new NotificationModel(
                 "3",
                 "user1",
@@ -192,7 +198,6 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
         notification4.setCreatedAt(new Timestamp(new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000)));
         notifications.add(notification4);
 
-        // Обсуждение
         NotificationModel notification5 = new NotificationModel(
                 "5",
                 "user1",
@@ -208,8 +213,19 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
 
     @Override
     public void onNotificationClick(NotificationModel notification) {
-        // TODO: Переход к событию/обсуждению
-        // Можно использовать notification.getType() и данные из notification.getData()
+        if ("new_event".equals(notification.getType()) || "event_update".equals(notification.getType())) {
+            String eventId = notification.getData() != null ? notification.getData().get("eventId") : null;
+            if (eventId != null) {
+                Bundle args = new Bundle();
+                args.putString("eventId", eventId);
+                EventDetailFragment fragment = new EventDetailFragment();
+                fragment.setArguments(args);
+                getActivity().getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, fragment)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        }
     }
 
     @Override
@@ -219,7 +235,6 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
 
     @Override
     public void onDeleteClick(NotificationModel notification, int position) {
-        // Удаление уведомления из Firebase
         if (auth.getCurrentUser() != null) {
             String userId = auth.getCurrentUser().getUid();
             db.collection("Profiles").document(userId)
@@ -228,7 +243,6 @@ public class NotificationFragment extends Fragment implements NotificationAdapte
                     .delete();
         }
 
-        // Удаление из локального списка
         adapter.removeNotification(position);
     }
 }

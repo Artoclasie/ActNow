@@ -5,13 +5,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="12dp">
+    android:padding="5dp"
+    android:background="@color/back">
 
     <!-- Аватар пользователя -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cv_comment_uid"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         app:cardCornerRadius="20dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -30,74 +31,36 @@
         android:id="@+id/tv_comment_uname"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Liza Saturday"
-        android:textColor="#4F78D0"
-        android:textSize="16sp"
+        android:layout_marginStart="8dp"
+        android:fontFamily="@font/barkentina"
+        android:text="Комментарий"
+        android:textColor="@color/previwtext"
+        android:textSize="18sp"
         android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="@id/cv_comment_uid"
+        app:layout_constraintEnd_toStartOf="@id/imb_comment_likes"
         app:layout_constraintStart_toEndOf="@id/cv_comment_uid"
-        android:layout_marginBottom="4dp"/>
-
-    <!-- Текст комментария -->
-    <TextView
-        android:id="@+id/et_post_comment"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Поздравляю с познанием семейной жизни"
-        android:textColor="@color/text"
-        android:textSize="14sp"
-        app:layout_constraintTop_toBottomOf="@id/tv_comment_uname"
-        app:layout_constraintStart_toStartOf="@id/tv_comment_uname"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="4dp"/>
-
-    <!-- Дата и действия -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@id/et_post_comment"
-        app:layout_constraintStart_toStartOf="@id/et_post_comment"
-        android:layout_marginTop="8dp">
-
-        <!-- Дата комментария -->
-        <TextView
-            android:id="@+id/tv_comment_date"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="16 мая в 15:50"
-            android:textColor="#808080"
-            android:textSize="12sp"/>
-
-        <!-- Кнопка удаления (только для автора) -->
-        <TextView
-            android:id="@+id/tv_comment_delete"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Удалить"
-            android:textColor="#808080"
-            android:textSize="12sp"
-            android:layout_marginStart="16dp"
-            android:visibility="gone"/>
-    </LinearLayout>
+        app:layout_constraintTop_toTopOf="@id/cv_comment_uid"
+        tools:ignore="NotSibling" />
 
     <!-- Блок лайков -->
     <LinearLayout
+        android:id="@+id/ll_likes"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        app:layout_constraintTop_toBottomOf="@id/et_post_comment"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp">
+        android:layout_marginTop="4dp">
 
         <!-- Кнопка лайка -->
         <ImageButton
             android:id="@+id/imb_comment_likes"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
             android:src="@drawable/ic_dislike"
             android:background="@android:color/transparent"
+            android:scaleType="fitXY"
             android:layout_marginEnd="4dp"/>
 
         <!-- Количество лайков -->
@@ -106,8 +69,50 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0"
+            android:fontFamily="@font/barkentina"
             android:textColor="@color/text"
-            android:textSize="12sp"/>
+            android:textSize="14sp"/>
     </LinearLayout>
+
+    <!-- Текст комментария -->
+    <TextView
+        android:id="@+id/et_post_comment"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="благодарю"
+        android:textColor="@color/text"
+        android:textSize="16sp"
+        android:fontFamily="@font/barkentina"
+        app:layout_constraintTop_toBottomOf="@id/tv_comment_uname"
+        app:layout_constraintStart_toStartOf="@id/tv_comment_uname"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="0dp"/>
+
+    <!-- Дата комментария -->
+    <TextView
+        android:id="@+id/tv_comment_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="08:44 AM PDT, 14 June 2025"
+        android:textColor="@color/gray"
+        android:textSize="14sp"
+        android:fontFamily="@font/barkentina"
+        app:layout_constraintTop_toBottomOf="@id/et_post_comment"
+        app:layout_constraintStart_toStartOf="@id/et_post_comment"
+        android:layout_marginTop="8dp"/>
+
+    <!-- Кнопка удаления (только для автора) -->
+    <TextView
+        android:id="@+id/tv_comment_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Удалить"
+        android:textColor="@color/gray"
+        android:textSize="14sp"
+        android:fontFamily="@font/barkentina"
+        android:visibility="visible"
+        app:layout_constraintTop_toBottomOf="@id/et_post_comment"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

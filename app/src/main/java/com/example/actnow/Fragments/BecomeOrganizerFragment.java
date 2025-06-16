@@ -4,11 +4,13 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.ScrollView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,6 +26,7 @@ public class BecomeOrganizerFragment extends Fragment {
     private LinearLayout llLegalFields, llIndividualFields;
     private EditText etCompanyName, etRegNumber, etFirstName, etLastName, etCity, etEmail, etPassword, etLegalCity;
     private Button btnSubmit, btnBack;
+    private ScrollView scrollView;
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -37,8 +40,10 @@ public class BecomeOrganizerFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        scrollView = view.findViewById(android.R.id.content).findViewById(R.id.fragment_container); // Найти ScrollView
         initViews(view);
         setupListeners();
+        setupScrollOnFocus();
 
         return view;
     }
@@ -74,6 +79,23 @@ public class BecomeOrganizerFragment extends Fragment {
         });
 
         btnSubmit.setOnClickListener(v -> submitOrganizationRequest());
+    }
+
+    private void setupScrollOnFocus() {
+        // Установка слушателя фокуса для всех EditText
+        View[] focusableViews = {etFirstName, etLastName, etCity, etCompanyName, etRegNumber, etEmail, etPassword, etLegalCity};
+        for (View view : focusableViews) {
+            view.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus && scrollView != null) {
+                    scrollView.post(() -> {
+                        int[] location = new int[2];
+                        v.getLocationOnScreen(location);
+                        int y = location[1];
+                        scrollView.smoothScrollTo(0, y - scrollView.getPaddingTop());
+                    });
+                }
+            });
+        }
     }
 
     private void submitOrganizationRequest() {
@@ -144,6 +166,8 @@ public class BecomeOrganizerFragment extends Fragment {
                         UserProfile userProfile = new UserProfile(newUserId, email, companyName, "legal_entity");
                         userProfile.setRole("organizer");
                         userProfile.setCity(city); // Сохраняем город в поле city
+                        // Убедимся, что rating инициализирован для organizer
+                        userProfile.setRating(0.0); // Инициализация рейтинга
 
                         db.collection("Profiles").document(newUserId)
                                 .set(userProfile.toMap())
@@ -171,13 +195,16 @@ public class BecomeOrganizerFragment extends Fragment {
         userProfile.setRole("individual_organizer");
         userProfile.setName(firstName + " " + lastName);
         userProfile.setCity(city);
+        // Убедимся, что rating инициализирован для individual_organizer
+        userProfile.setRating(0.0); // Инициализация рейтинга
 
         db.collection("Profiles").document(userId)
                 .update(
                         "accountType", accountType,
                         "role", "individual_organizer",
                         "username", userProfile.getName(),
-                        "city", userProfile.getCity()
+                        "city", userProfile.getCity(),
+                        "stats.rating", userProfile.getRating()
                 )
                 .addOnSuccessListener(aVoid -> showSuccessMessage(accountType))
                 .addOnFailureListener(e -> {

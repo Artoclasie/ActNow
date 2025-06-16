@@ -12,8 +12,8 @@ public class EventModel {
     private String eventId;
     private String title;
     private String description;
-    private Integer currentParticipants; // Изменено с int на Integer
-    private Integer maxParticipants;     // Изменено с int на Integer
+    private Integer currentParticipants;
+    private Integer maxParticipants;
     private int minAge;
     private Timestamp startDate;
     private Timestamp endDate;
@@ -31,7 +31,6 @@ public class EventModel {
     private Timestamp updatedAt;
     private double averageRating;
 
-    // Конструктор по умолчанию
     public EventModel() {
         this.searchKeywords = new ArrayList<>();
         this.location = new HashMap<>();
@@ -45,14 +44,13 @@ public class EventModel {
         this.endDate = Timestamp.now();
         this.startTime = "09:00";
         this.endTime = "10:00";
-        this.currentParticipants = 0; // Инициализация значением по умолчанию
-        this.maxParticipants = 100;   // Инициализация значением по умолчанию
+        this.currentParticipants = 0;
+        this.maxParticipants = 100;
         this.minAge = 15;
         this.status = "draft";
         this.averageRating = 0.0;
     }
 
-    // Конструктор с основными полями
     public EventModel(String eventId, String organizerId, String title, String description) {
         this();
         this.eventId = eventId;
@@ -61,7 +59,6 @@ public class EventModel {
         this.description = description;
     }
 
-    // Геттеры и сеттеры
     public String getEventId() { return eventId; }
     public void setEventId(String eventId) { this.eventId = eventId; }
     public String getTitle() { return title; }

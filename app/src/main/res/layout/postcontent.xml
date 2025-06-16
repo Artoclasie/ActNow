@@ -9,13 +9,12 @@
     android:background="@color/back"
     android:elevation="5dp">
 
-    <!-- Аватарка автора -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cv_post_uid"
-        android:layout_width="55dp"
-        android:layout_height="55dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="15dp"
         app:cardCornerRadius="45dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -29,7 +28,6 @@
 
     </androidx.cardview.widget.CardView>
 
-    <!-- Никнейм автора -->
     <TextView
         android:id="@+id/tv_post_uname"
         android:layout_width="0dp"
@@ -37,12 +35,11 @@
         android:layout_marginStart="10dp"
         android:layout_marginTop="16dp"
         android:fontFamily="@font/barkentina"
-        android:textColor="@color/text"
-        android:textSize="22sp"
+        android:textColor="@color/previwtext"
+        android:textSize="20sp"
         app:layout_constraintStart_toEndOf="@id/cv_post_uid"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Заменим ImageButton для подписки на TextView -->
     <TextView
         android:id="@+id/tv_follow"
         android:layout_width="wrap_content"
@@ -56,7 +53,6 @@
         app:layout_constraintEnd_toStartOf="@id/tv_post_delete"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Заменим ImageButton для удаления на TextView -->
     <TextView
         android:id="@+id/tv_post_delete"
         android:layout_width="wrap_content"
@@ -67,25 +63,22 @@
         android:text="Удалить"
         android:textColor="@color/text"
         android:visibility="gone"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Город автора -->
     <TextView
         android:id="@+id/tv_post_city"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
-        android:layout_marginTop="2dp"
+        android:layout_marginTop="0dp"
         android:fontFamily="@font/barkentina"
-        android:textColor="@color/text"
+        android:textColor="@color/gray"
         android:textSize="14sp"
         app:layout_constraintStart_toEndOf="@id/cv_post_uid"
         app:layout_constraintTop_toBottomOf="@id/tv_post_uname" />
 
-    <!-- Контейнер для контента -->
-
-    <!-- Дата поста -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/cl_content"
         android:layout_width="match_parent"
@@ -98,9 +91,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_post_city">
 
-        <!-- Картинка поста -->
-
-        <!-- Описание поста -->
         <ImageView
             android:id="@+id/imv_post_content"
             android:layout_width="0dp"
@@ -133,12 +123,11 @@
         android:layout_marginStart="20dp"
         android:layout_marginTop="10dp"
         android:fontFamily="@font/barkentina"
-        android:textColor="@color/text"
+        android:textColor="@color/gray"
         android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cl_content" />
 
-    <!-- Лайки -->
     <ImageButton
         android:id="@+id/imb_post_likes"
         android:layout_width="25dp"
@@ -151,7 +140,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cl_content" />
 
-    <!-- Количество лайков -->
     <TextView
         android:id="@+id/tv_post_likes"
         android:layout_width="wrap_content"

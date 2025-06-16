@@ -116,17 +116,14 @@ public class PostContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         String currentUserId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
 
-        // Убираем кнопку "Отписаться/Подписаться" в этом контексте
         holder.tv_follow.setVisibility(View.GONE);
 
-        // Устанавливаем данные
         holder.tv_post_uname.setText(post.getUsername() != null ? post.getUsername() : "Неизвестный пользователь");
         holder.tv_post_city.setText(post.getCity() != null ? post.getCity() : "");
         holder.tv_post_location.setText(post.getContent() != null ? post.getContent() : "");
         holder.tv_post_date.setText(post.getDate() != null ? post.getDate() : "");
         holder.tv_post_likes.setText(String.valueOf(post.getLikesCount() > 0 ? post.getLikesCount() : 0));
 
-        // Загружаем иконку автора
         if (post.getProfileImageUrl() != null && !post.getProfileImageUrl().isEmpty()) {
             Glide.with(context)
                     .load(post.getProfileImageUrl())
@@ -137,7 +134,6 @@ public class PostContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             holder.imv_post_uid.setImageResource(R.drawable.ic_person);
         }
 
-        // Обработка изображения поста
         if (post.getImageUrl() != null && !post.getImageUrl().isEmpty()) {
             holder.imv_post_content.setVisibility(View.VISIBLE);
             Glide.with(context)
@@ -147,7 +143,6 @@ public class PostContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             holder.imv_post_content.setVisibility(View.GONE);
         }
 
-        // Обработка лайков
         boolean isLiked = post.getLikes() != null && post.getLikes().contains(currentUserId);
         holder.imb_post_likes.setImageResource(isLiked ? R.drawable.ic_like : R.drawable.ic_dislike);
 
@@ -263,7 +258,6 @@ public class PostContentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         }
     }
 
-    // Переопределяем, чтобы убрать логику подписки
     public void setupFollowButton(final TextView followButton, String authorId, String currentUserId, PostViewHolder holder) {
         followButton.setVisibility(View.GONE);
     }

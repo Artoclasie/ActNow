@@ -24,7 +24,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -34,11 +33,10 @@ import com.example.actnow.R;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.GeoPoint;
+
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 
@@ -58,13 +56,12 @@ public class CreateEventFragment extends Fragment {
 
     private static final String TAG = "CreateEventFragment";
     private static final int MAX_GALLERY_IMAGES = 10;
-    private static final int REQUEST_CODE_MAP = 1001;
 
-    // UI элементы
+    // UI elements
     private TextInputEditText etTitle, etDescription, etMaxParticipants, etAddress, etMinAge;
     private TextInputEditText etStartDate, etEndDate, etStartTime, etEndTime;
     private ChipGroup chipGroupTags;
-    private Button btnCancel, btnCreateEvent, btnSelectLocation;
+    private Button btnCancel, btnCreateEvent;
     private ImageButton btnAddCoverPhoto, btnDeleteCoverPhoto, btnAddGalleryPhoto;
     private ImageView ivCoverPreview;
     private TextView tvGalleryCount, tvDescriptionCharCount;
@@ -75,14 +72,13 @@ public class CreateEventFragment extends Fragment {
     private FirebaseFirestore db;
     private FirebaseAuth auth;
 
-    // Данные
+    // Data
     private Uri coverImageUri;
     private List<Uri> galleryImageUris;
     private List<Object> galleryImages;
     private Calendar startDate, endDate;
     private int startHour, startMinute, endHour, endMinute;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
-    private GeoPoint selectedCoordinates;
 
     // Cloudinary
     private Cloudinary cloudinary;
@@ -132,8 +128,9 @@ public class CreateEventFragment extends Fragment {
                     Toast.makeText(getContext(), "Достигнут лимит в " + MAX_GALLERY_IMAGES + " изображений", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                int maxSelectable = MAX_GALLERY_IMAGES - currentTotal;
                 if (result.getData().getClipData() != null) {
-                    int count = Math.min(result.getData().getClipData().getItemCount(), MAX_GALLERY_IMAGES - currentTotal);
+                    int count = Math.min(result.getData().getClipData().getItemCount(), maxSelectable);
                     for (int i = 0; i < count; i++) {
                         Uri uri = result.getData().getClipData().getItemAt(i).getUri();
                         if (uri != null && !galleryImageUris.contains(uri)) {
@@ -172,7 +169,6 @@ public class CreateEventFragment extends Fragment {
         chipGroupTags = view.findViewById(R.id.chip_group_tags);
         btnCancel = view.findViewById(R.id.btn_cancel);
         btnCreateEvent = view.findViewById(R.id.btn_create_event);
-        btnSelectLocation = view.findViewById(R.id.btn_select_location);
         btnAddCoverPhoto = view.findViewById(R.id.btn_add_cover_photo);
         btnDeleteCoverPhoto = view.findViewById(R.id.btn_delete_cover_photo);
         btnAddGalleryPhoto = view.findViewById(R.id.btn_add_gallery_photo);
@@ -181,13 +177,10 @@ public class CreateEventFragment extends Fragment {
         tvDescriptionCharCount = view.findViewById(R.id.tv_description_char_count);
         rvGalleryImages = view.findViewById(R.id.rv_gallery_images);
 
-        // Setup RecyclerView for gallery
         setupGalleryRecyclerView();
 
-        // Set up listeners
         setupListeners();
 
-        // Initial button state
         validateInputs();
 
         return view;
@@ -243,58 +236,43 @@ public class CreateEventFragment extends Fragment {
             dialog.show();
         });
 
-        // Set up time pickers
+        // Set up time pickers with 5:00 to 22:00 restriction
         etStartTime.setOnClickListener(v -> {
             TimePickerDialog dialog = new TimePickerDialog(
                     requireContext(),
-                    (view1, hour, minute) -> {
-                        if (hour < 9 || (hour == 19 && minute > 0) || hour > 19) {
-                            Toast.makeText(getContext(), "Время должно быть с 09:00 до 19:00", Toast.LENGTH_SHORT).show();
+                    (view, hourOfDay, minute) -> {
+                        if (hourOfDay < 5 || hourOfDay > 21) { // 5:00 to 21:59
+                            Toast.makeText(getContext(), "Время должно быть с 05:00 до 21:59", Toast.LENGTH_SHORT).show();
                             return;
                         }
-                        startHour = hour;
+                        startHour = hourOfDay;
                         startMinute = minute;
-                        etStartTime.setText(String.format(Locale.getDefault(), "%02d:%02d", hour, minute));
+                        etStartTime.setText(String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute));
                         validateInputs();
                     },
                     startHour, startMinute, true
             );
+            dialog.updateTime(5, 0); // Начальное значение 05:00
             dialog.show();
         });
 
         etEndTime.setOnClickListener(v -> {
             TimePickerDialog dialog = new TimePickerDialog(
                     requireContext(),
-                    (view1, hour, minute) -> {
-                        if (hour < 9 || (hour == 19 && minute > 0) || hour > 19) {
-                            Toast.makeText(getContext(), "Время должно быть с 09:00 до 19:00", Toast.LENGTH_SHORT).show();
+                    (view, hourOfDay, minute) -> {
+                        if (hourOfDay < 5 || (hourOfDay == 22 && minute > 0) || hourOfDay > 22) { // 5:00 to 22:00
+                            Toast.makeText(getContext(), "Время должно быть с 05:00 до 22:00", Toast.LENGTH_SHORT).show();
                             return;
                         }
-                        endHour = hour;
+                        endHour = hourOfDay;
                         endMinute = minute;
-                        etEndTime.setText(String.format(Locale.getDefault(), "%02d:%02d", hour, minute));
+                        etEndTime.setText(String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute));
                         validateInputs();
                     },
                     endHour, endMinute, true
             );
+            dialog.updateTime(22, 0); // Начальное значение 22:00
             dialog.show();
-        });
-
-        // Set up select location button
-        btnSelectLocation.setOnClickListener(v -> {
-            MapFragment mapFragment = new MapFragment();
-            Bundle args = new Bundle();
-            args.putBoolean("isSelectMode", true);
-            if (selectedCoordinates != null) {
-                args.putDouble("lat", selectedCoordinates.getLatitude());
-                args.putDouble("lng", selectedCoordinates.getLongitude());
-            }
-            mapFragment.setArguments(args);
-            mapFragment.setTargetFragment(this, REQUEST_CODE_MAP);
-            FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-            transaction.replace(R.id.fragment_container, mapFragment);
-            transaction.addToBackStack(null);
-            transaction.commit();
         });
 
         // Set up image upload buttons
@@ -357,25 +335,10 @@ public class CreateEventFragment extends Fragment {
         etStartTime.addTextChangedListener(validationWatcher);
         etEndTime.addTextChangedListener(validationWatcher);
 
-        // Set up chip group listener
         chipGroupTags.setOnCheckedStateChangeListener((group, checkedIds) -> validateInputs());
 
-        // Set up action buttons
         btnCancel.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
         btnCreateEvent.setOnClickListener(v -> createEvent());
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_MAP && resultCode == Activity.RESULT_OK && data != null) {
-            double lat = data.getDoubleExtra("latitude", 0);
-            double lng = data.getDoubleExtra("longitude", 0);
-            String address = data.getStringExtra("address");
-            selectedCoordinates = new GeoPoint(lat, lng);
-            etAddress.setText(address);
-            validateInputs();
-        }
     }
 
     private void validateInputs() {
@@ -498,7 +461,7 @@ public class CreateEventFragment extends Fragment {
                 !maxParticipantsStr.isEmpty() && maxParticipants > 0 &&
                 !startDateStr.isEmpty() && !endDateStr.isEmpty() &&
                 !startTimeStr.isEmpty() && !endTimeStr.isEmpty() &&
-                !address.isEmpty() && selectedCoordinates != null &&
+                !address.isEmpty() &&
                 hasTags && coverImageUri != null;
 
         if (!minAgeStr.isEmpty()) {
@@ -542,11 +505,8 @@ public class CreateEventFragment extends Fragment {
         int minAge = minAgeStr.isEmpty() ? 15 : Integer.parseInt(minAgeStr);
         event.setMinAge(minAge);
 
-        // Set address and coordinates
         event.setAddress(address);
-        event.setCoordinates(selectedCoordinates);
 
-        // Set tags
         List<String> tags = new ArrayList<>();
         for (int i = 0; i < chipGroupTags.getChildCount(); i++) {
             Chip chip = (Chip) chipGroupTags.getChildAt(i);
@@ -556,15 +516,8 @@ public class CreateEventFragment extends Fragment {
         }
         event.setTags(tags);
 
-        // Set status based on current date
-        Date currentDate = new Date();
-        if (event.getEndDate().toDate().before(currentDate)) {
-            event.setStatus("completed");
-        } else if (event.getCurrentParticipants() >= event.getMaxParticipants()) {
-            event.setStatus("full");
-        } else {
-            event.setStatus("active");
-        }
+        // Set status as "active" by default
+        event.setStatus("active");
 
         // Set dates and times
         try {

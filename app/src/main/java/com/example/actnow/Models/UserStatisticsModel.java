@@ -25,7 +25,6 @@ public class UserStatisticsModel {
         this.totalRatings = 0;
     }
 
-    // Getters and Setters
     public int getEventsCreated() {
         return eventsCreated;
     }

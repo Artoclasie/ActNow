@@ -29,6 +29,7 @@ import com.bumptech.glide.Glide;
 import com.example.actnow.Adapters.CommentAdapter;
 import com.example.actnow.Adapters.GalleryAdapter;
 import com.example.actnow.Adapters.ParticipantAdapter;
+import com.example.actnow.AnotherProfileActivity;
 import com.example.actnow.Models.CommentModel;
 import com.example.actnow.Models.EventModel;
 import com.example.actnow.Models.UserProfile;
@@ -53,9 +54,11 @@ import java.util.Map;
 public class EventDetailFragment extends Fragment implements CommentAdapter.OnCommentInteractionListener {
 
     private static final String TAG = "EventDetailFragment";
+    private static final int INITIAL_PARTICIPANT_COUNT = 3;
+    private static final int LOAD_MORE_COUNT = 5;
 
     // Firebase
-    private FirebaseAuth mAuth;
+    private FirebaseAuth firebaseAuth;
     private FirebaseFirestore db;
     private String currentUserId;
 
@@ -63,11 +66,11 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
     private ImageButton btnBack;
     private ImageView imvEventContent;
     private ImageView ivEventCover;
-    private TextView tvEventTitle, tvEventDate, tvEventTime, tvDescription, tvDirections;
+    private TextView tvEventTitle, tvEventDateRange, tvEventTime, tvDescription, tvDirections;
     private View organizerLayout;
     private TextView tvOrganizerName, tvOrganizerRole;
     private ImageView ivOrganizerPhoto;
-    private MaterialButton btnAction, btnShowMap;
+    private MaterialButton btnAction, btnShowMap, btnShowMoreParticipants;
     private RecyclerView rvGallery, rvParticipants, rvComments;
     private EditText etComment;
     private ImageView ivSendComment;
@@ -85,6 +88,7 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
     private List<String> galleryImages = new ArrayList<>();
     private List<UserProfile> participants = new ArrayList<>();
     private List<CommentModel> comments = new ArrayList<>();
+    private int visibleParticipantCount = INITIAL_PARTICIPANT_COUNT;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -93,9 +97,9 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
     }
 
     private void initFirebase() {
-        mAuth = FirebaseAuth.getInstance();
+        firebaseAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        currentUserId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+        currentUserId = firebaseAuth.getCurrentUser() != null ? firebaseAuth.getCurrentUser().getUid() : null;
     }
 
     @Override
@@ -115,12 +119,13 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
         imvEventContent = view.findViewById(R.id.imv_event_content);
         ivEventCover = view.findViewById(R.id.iv_event_cover);
         tvEventTitle = view.findViewById(R.id.tv_event_title);
-        tvEventDate = view.findViewById(R.id.tv_event_date);
+        tvEventDateRange = view.findViewById(R.id.tv_event_date_range);
         tvEventTime = view.findViewById(R.id.tv_event_time);
         tvDescription = view.findViewById(R.id.tv_description);
         tvDirections = view.findViewById(R.id.tv_directions);
         btnAction = view.findViewById(R.id.btn_action);
         btnShowMap = view.findViewById(R.id.btn_show_map);
+        btnShowMoreParticipants = view.findViewById(R.id.btn_show_more_participants); // Инициализация кнопки
         rvGallery = view.findViewById(R.id.rv_gallery);
         rvParticipants = view.findViewById(R.id.rv_participants);
         rvComments = view.findViewById(R.id.rv_comments);
@@ -155,24 +160,14 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
                     .addToBackStack(null)
                     .commit();
         });
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
-        rvGallery.setLayoutManager(layoutManager);
+        LinearLayoutManager galleryLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
+        rvGallery.setLayoutManager(galleryLayoutManager);
         rvGallery.setAdapter(galleryAdapter);
-        rvGallery.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
-            @Override
-            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull android.view.MotionEvent e) {
-                return false;
-            }
-
-            @Override
-            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull android.view.MotionEvent e) {}
-
-            @Override
-            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {}
-        });
+        rvGallery.addOnItemTouchListener(new RecyclerView.SimpleOnItemTouchListener());
 
         participantAdapter = new ParticipantAdapter(participants);
-        rvParticipants.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        LinearLayoutManager participantLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
+        rvParticipants.setLayoutManager(participantLayoutManager);
         rvParticipants.setAdapter(participantAdapter);
 
         commentAdapter = new CommentAdapter(getContext(), comments, this);
@@ -183,22 +178,16 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
     private void setupOrganizerClick() {
         organizerLayout.setOnClickListener(v -> {
             if (event != null && event.getOrganizerId() != null) {
-                AnotherProfileFragment fragment = new AnotherProfileFragment();
-                Bundle args = new Bundle();
-                args.putString("userId", event.getOrganizerId());
-                fragment.setArguments(args);
-                FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-                transaction.replace(R.id.fragment_container, fragment);
-                transaction.addToBackStack(null);
-                transaction.commit();
+                Intent intent = new Intent(getActivity(), AnotherProfileActivity.class);
+                intent.putExtra("uid", event.getOrganizerId());
+                intent.putExtra("fromChatsFragment", false); // Укажи, что переход не из ChatsFragment
+                startActivity(intent);
             }
         });
     }
 
     private void setupBackButton() {
-        btnBack.setOnClickListener(v -> {
-            getParentFragmentManager().popBackStack();
-        });
+        btnBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
     }
 
     private void loadEventData() {
@@ -308,12 +297,18 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
             }
         });
 
+        // Форматирование диапазона дат
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM d, yyyy", new Locale("ru"));
-        if (event.getStartDate() != null) {
-            tvEventDate.setText(dateFormat.format(event.getStartDate().toDate()));
-        } else {
-            tvEventDate.setText("Дата не указана");
+        String dateRangeText = "Дата не указана";
+        if (event.getStartDate() != null && event.getEndDate() != null) {
+            dateRangeText = "с " + dateFormat.format(event.getStartDate().toDate()) +
+                    " по " + dateFormat.format(event.getEndDate().toDate());
+        } else if (event.getStartDate() != null) {
+            dateRangeText = "с " + dateFormat.format(event.getStartDate().toDate());
         }
+        tvEventDateRange.setText(dateRangeText);
+
+        // Время
         String timeText = (event.getStartTime() != null ? event.getStartTime() : "Не указано") + " - " +
                 (event.getEndTime() != null ? event.getEndTime() : "Не указано") + " (EUROPE/MINSK)";
         tvEventTime.setText(timeText);
@@ -368,7 +363,6 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
             return;
         }
 
-        // Проверка для организатора
         if (currentUserId.equals(event.getOrganizerId())) {
             Log.d(TAG, "User is organizer, status: " + event.getStatus());
             if ("completed".equals(event.getStatus())) {
@@ -394,7 +388,6 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
             return;
         }
 
-        // Загрузка профиля пользователя
         db.collection("Profiles").document(currentUserId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -421,7 +414,6 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
                     int userAge = calculateAge(user.getBirthDate());
                     Integer minAge = event.getMinAge();
 
-                    // Проверка статуса события
                     if ("completed".equals(event.getStatus())) {
                         checkReviewStatus();
                     } else if (event.getCurrentParticipants() >= event.getMaxParticipants()) {
@@ -724,7 +716,6 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
         db.collection("events").document(event.getEventId())
                 .collection("Participants")
                 .orderBy("joinedAt", Query.Direction.DESCENDING)
-                .limit(10)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (!isAdded()) return;
@@ -738,7 +729,7 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
                                         UserProfile participant = profileSnapshot.toObject(UserProfile.class);
                                         if (participant != null) {
                                             participants.add(participant);
-                                            participantAdapter.notifyDataSetChanged();
+                                            updateParticipantVisibility();
                                         }
                                     }
                                 });
@@ -748,6 +739,19 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
                     if (!isAdded()) return;
                     Toast.makeText(getContext(), "Ошибка загрузки участников", Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private void updateParticipantVisibility() {
+        if (!isAdded()) return;
+        int totalParticipants = participants.size();
+        if (totalParticipants > INITIAL_PARTICIPANT_COUNT) {
+            btnShowMoreParticipants.setVisibility(View.VISIBLE);
+            participantAdapter.setVisibleCount(Math.min(visibleParticipantCount, totalParticipants));
+        } else {
+            btnShowMoreParticipants.setVisibility(View.GONE);
+            participantAdapter.setVisibleCount(totalParticipants);
+        }
+        participantAdapter.notifyDataSetChanged();
     }
 
     private void loadComments() {
@@ -765,16 +769,39 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
                         CommentModel comment = snapshot.toObject(CommentModel.class);
                         if (comment != null) {
                             comment.setCommentId(snapshot.getId());
-                            comments.add(comment);
+
+                            db.collection("Profiles").document(comment.getAuthorId())
+                                    .get()
+                                    .addOnSuccessListener(profileSnapshot -> {
+                                        if (!isAdded()) return;
+                                        if (profileSnapshot.exists()) {
+                                            String authorName = profileSnapshot.getString("username");
+                                            String profileImage = profileSnapshot.getString("avatarUrl");
+                                            comment.setAuthorName(authorName != null ? authorName : "");
+                                            comment.setProfileImage(profileImage != null ? profileImage : "");
+                                            comments.add(comment);
+                                            commentAdapter.notifyDataSetChanged();
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        if (!isAdded()) return;
+                                        comment.setAuthorName("");
+                                        comment.setProfileImage("");
+                                        comments.add(comment);
+                                        commentAdapter.notifyDataSetChanged();
+                                    });
                         }
                     }
-                    commentAdapter.notifyDataSetChanged();
+
+                    if (comments.isEmpty()) {
+                        commentAdapter.notifyDataSetChanged();
+                    }
                     Log.d(TAG, "Loaded " + comments.size() + " comments");
                 })
                 .addOnFailureListener(e -> {
                     if (!isAdded()) return;
                     Log.e(TAG, "Error loading comments", e);
-                    Toast.makeText(getContext(), "Ошибка загрузки комментариев", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Ошибка получения комментариев", Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -799,7 +826,6 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
                 null,
                 content
         );
-        List<String> imageUrls = new ArrayList<>();
 
         db.collection("events").document(event.getEventId())
                 .collection("Comments").document(commentId)
@@ -818,31 +844,50 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
     }
 
     @Override
-    public void onLikeComment(String commentId, boolean isLiked) {
-        if (currentUserId == null) return;
+    public void onLikeComment(final String commentId, final boolean isLiked, final CommentModel comment, final CommentAdapter.CommentViewHolder holder) {
+        if (currentUserId == null) {
+            Toast.makeText(getContext(), "Войдите, чтобы ставить лайки", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (event == null || comment == null || holder == null) {
+            Log.e(TAG, "Null event, comment, or holder in onLikeComment");
+            return;
+        }
+
+        final int newLikesCount;
+        if (isLiked) {
+            if (!comment.isLikedBy(currentUserId)) {
+                comment.addLike(currentUserId);
+                newLikesCount = comment.getLikesCount() + 1;
+            } else {
+                newLikesCount = comment.getLikesCount();
+            }
+        } else {
+            comment.removeLike(currentUserId);
+            newLikesCount = Math.max(0, comment.getLikesCount() - 1);
+        }
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("likes", comment.getLikes());
+        updates.put("likesCount", newLikesCount);
 
         db.collection("events").document(event.getEventId())
                 .collection("Comments").document(commentId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
                     if (!isAdded()) return;
-                    CommentModel comment = documentSnapshot.toObject(CommentModel.class);
-                    if (comment != null) {
-                        if (isLiked) {
-                            comment.addLike(currentUserId);
-                        } else {
-                            comment.removeLike(currentUserId);
-                        }
-                        db.collection("events").document(event.getEventId())
-                                .collection("Comments").document(commentId)
-                                .update("likes", comment.getLikes())
-                                .addOnSuccessListener(aVoid -> loadComments())
-                                .addOnFailureListener(e -> Toast.makeText(getContext(), "Ошибка обновления лайков", Toast.LENGTH_SHORT).show());
-                    }
+                    comment.setLikesCount(newLikesCount);
+                    loadComments();
                 })
                 .addOnFailureListener(e -> {
                     if (!isAdded()) return;
-                    Toast.makeText(getContext(), "Ошибка получения комментария", Toast.LENGTH_SHORT).show();
+
+                    boolean wasLiked = comment.isLikedBy(currentUserId);
+                    holder.likeButton.setImageResource(wasLiked ? R.drawable.ic_like : R.drawable.ic_dislike);
+                    holder.likesCountText.setText(String.valueOf(comment.getLikesCount()));
+                    Toast.makeText(getContext(), "Ошибка обновления лайков", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error updating likes", e);
                 });
     }
 
@@ -864,6 +909,7 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
                             })
                             .addOnFailureListener(e -> {
                                 if (!isAdded()) return;
+                                Log.e(TAG, "Error deleting comment", e);
                                 Toast.makeText(getContext(), "Ошибка удаления комментария", Toast.LENGTH_SHORT).show();
                             });
                 })
@@ -900,12 +946,27 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
                 .addOnSuccessListener(snapshot -> {
                     if (!isAdded()) return;
                     if (snapshot.exists() && "completed".equals(event.getStatus())) {
-                        new AlertDialog.Builder(getContext())
-                                .setTitle("Оцените мероприятие")
-                                .setMessage("Пожалуйста, оставьте отзыв об этом мероприятии.")
-                                .setPositiveButton("Оценить", (dialog, which) -> openReviewDialog())
-                                .setNegativeButton("Отказаться", null)
-                                .show();
+                        // Проверяем, оставлял ли пользователь отзыв
+                        db.collection("Reviews")
+                                .whereEqualTo("userId", event.getOrganizerId())
+                                .whereEqualTo("eventId", event.getEventId())
+                                .whereEqualTo("reviewerId", currentUserId)
+                                .get()
+                                .addOnSuccessListener(querySnapshot -> {
+                                    if (!isAdded()) return;
+                                    if (querySnapshot.isEmpty()) { // Если отзывов нет
+                                        new AlertDialog.Builder(getContext())
+                                                .setTitle("Оцените мероприятие")
+                                                .setMessage("Пожалуйста, оставьте отзыв об этом мероприятии.")
+                                                .setPositiveButton("Оценить", (dialog, which) -> openReviewDialog())
+                                                .setNegativeButton("Отказаться", null)
+                                                .show();
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    if (!isAdded()) return;
+                                    Log.e(TAG, "Error checking reviews for rating prompt", e);
+                                });
                     }
                 });
     }
@@ -918,5 +979,21 @@ public class EventDetailFragment extends Fragment implements CommentAdapter.OnCo
                     .addToBackStack(null)
                     .commit();
         }
+    }
+
+    private void setupShowMoreParticipants() {
+        btnShowMoreParticipants.setOnClickListener(v -> {
+            visibleParticipantCount += LOAD_MORE_COUNT;
+            updateParticipantVisibility();
+            if (visibleParticipantCount >= participants.size()) {
+                btnShowMoreParticipants.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        setupShowMoreParticipants();
     }
 }

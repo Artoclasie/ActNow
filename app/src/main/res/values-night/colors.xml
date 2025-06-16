@@ -2,12 +2,19 @@
 <resources>
     <color name="transparent">#00000000</color>
     <color name="black">#FF000000</color>
+    <color name="gray">#808080</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="text">#E0E0E0</color> <!-- Светлый текст для тёмной темы -->
-    <color name="post">#3F51B5</color> <!-- Тёмный синий для постов -->
-    <color name="menu">#5C6BC0</color> <!-- Тёмный синий для меню -->
-    <color name="button">#0288D1</color> <!-- Яркий синий для кнопок -->
-    <color name="back">#212121</color> <!-- Тёмный фон -->
+
+
+    <color name="text">#E0E0E0</color>
+    <color name="previwtext">#0a6ab8</color>
+    <color name="button">#284352</color>
+    <color name="back">#212121</color>
+
+
+    <!-- посмотрим -->
+    <color name="post">#3F51B5</color>
+    <color name="menu">#5C6BC0</color>
     <color name="ramki">#0288D1</color> <!-- Синий для рамок -->
     <color name="chip_background">#424242</color> <!-- Тёмный фон для чипов -->
     <color name="chip_stroke">#B0BEC5</color> <!-- Светло-серая обводка -->

@@ -7,7 +7,7 @@ import java.util.HashMap;
 public class LikeModel {
     private String likeId;
     private String userId;
-    private String targetType; // post, comment, event
+    private String targetType;
     private String targetId;
     private Timestamp createdAt;
 
@@ -23,7 +23,6 @@ public class LikeModel {
         this.targetId = targetId;
     }
 
-    // Getters and Setters
     public String getLikeId() { return likeId; }
     public void setLikeId(String likeId) { this.likeId = likeId; }
 

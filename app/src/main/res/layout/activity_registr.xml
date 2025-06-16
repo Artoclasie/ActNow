@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/back"
+    android:background="@color/white"
     tools:context=".RegistrActivity">
 
     <TextView
@@ -15,7 +15,7 @@
         android:fontFamily="@font/barkentina"
         android:text="Создать аккаунт"
         android:textStyle="bold"
-        android:textColor="@color/text"
+        android:textColor="@color/black"
         android:textSize="27sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -32,8 +32,8 @@
         android:inputType="textPersonName"
         android:autofillHints="username"
         android:importantForAutofill="yes"
-        android:textColor="@color/text"
-        android:textColorHint="@color/text"
+        android:textColor="@color/black"
+        android:textColorHint="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/welcome" />
@@ -49,8 +49,8 @@
         android:inputType="textEmailAddress"
         android:autofillHints="emailAddress"
         android:importantForAutofill="yes"
-        android:textColor="@color/text"
-        android:textColorHint="@color/text"
+        android:textColor="@color/black"
+        android:textColorHint="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/username_et" />
@@ -64,8 +64,8 @@
         android:fontFamily="@font/barkentina"
         android:hint="Пароль"
         android:inputType="textPassword"
-        android:textColor="@color/text"
-        android:textColorHint="@color/text"
+        android:textColor="@color/black"
+        android:textColorHint="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/email_et" />
@@ -81,8 +81,8 @@
         android:inputType="text"
         android:autofillHints="addressCity"
         android:importantForAutofill="yes"
-        android:textColor="@color/text"
-        android:textColorHint="@color/text"
+        android:textColor="@color/black"
+        android:textColorHint="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/password_et" />
@@ -96,8 +96,8 @@
         android:fontFamily="@font/barkentina"
         android:hint="Дата рождения (ДД.ММ.ГГГГ)"
         android:inputType="date"
-        android:textColor="@color/text"
-        android:textColorHint="@color/text"
+        android:textColor="@color/black"
+        android:textColorHint="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/city_et" />
@@ -123,7 +123,7 @@
         android:layout_marginTop="20dp"
         android:fontFamily="@font/barkentina"
         android:text="Уже есть аккаунт? Войти"
-        android:textColor="@color/text"
+        android:textColor="@color/black"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

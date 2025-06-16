@@ -13,16 +13,17 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:title="Лента"
-            app:titleTextColor="@android:color/white">
+            android:layout_height="55dp"
+            android:background="@color/button"
+            app:title="   Лента"
+            app:titleTextColor="@color/text"
+            app:titleTextAppearance="@style/ToolbarTitleAppearance">
 
             <!-- Кнопка создания поста -->
             <ImageView
                 android:id="@+id/ivAdd"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
                 android:layout_gravity="end"
                 android:layout_marginEnd="16dp"
                 android:src="@drawable/ic_add"

@@ -1,5 +1,6 @@
 package com.example.actnow.Fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -10,12 +11,12 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.example.actnow.ChatActivity;
 import com.example.actnow.Adapters.ChatAdapter;
 import com.example.actnow.Models.ChatModel;
 import com.example.actnow.R;
@@ -67,7 +68,7 @@ public class ChatsFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
         chats = new ArrayList<>();
 
-        chatAdapter = new ChatAdapter(getContext(), currentUserId, chat -> openChatFragment(chat));
+        chatAdapter = new ChatAdapter(getContext(), currentUserId, chat -> openChatActivity(chat));
         rvChats.setAdapter(chatAdapter);
 
         // Set up SwipeRefreshLayout
@@ -155,17 +156,12 @@ public class ChatsFragment extends Fragment {
         }
     }
 
-    private void openChatFragment(ChatModel chat) {
+    private void openChatActivity(ChatModel chat) {
         String otherUserId = getOtherUserId(chat);
         if (otherUserId != null && !otherUserId.equals(currentUserId)) {
-            ChatFragment chatFragment = ChatFragment.newInstance(otherUserId);
-            if (getActivity() != null) {
-                getActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragment_container, chatFragment)
-                        .addToBackStack(null)
-                        .commit();
-            }
+            Intent intent = new Intent(getActivity(), ChatActivity.class);
+            intent.putExtra("userId", otherUserId);
+            startActivity(intent);
         } else {
             Toast.makeText(getContext(), "Ошибка: Невозможно начать чат с самим собой", Toast.LENGTH_SHORT).show();
             Log.w(TAG, "Attempted to start self-chat with userId: " + otherUserId);

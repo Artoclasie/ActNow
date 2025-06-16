@@ -10,7 +10,7 @@ public class EventParticipantModel {
     private String participationId;
     private String eventId;
     private String userId;
-    private String status; // pending, approved, rejected, attended, no_show
+    private String status;
     private int groupSize;
     private boolean isGroupLeader;
     private List<Map<String, Object>> groupMembers;
